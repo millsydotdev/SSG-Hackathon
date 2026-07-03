@@ -11,7 +11,7 @@ export const sidebarNav: NavItem[] = [
   { label: "Team", href: "/app/team", icon: "group" },
   { label: "Planning", href: "/app/planning", icon: "map" },
   { label: "Tasks", href: "/tasks", icon: "assignment" },
-  { label: "Ideas", href: "/ideas", icon: "lightbulb" },
+  { label: "Ideas", href: "/app/ideas", icon: "lightbulb" },
   { label: "Research", href: "/research", icon: "science" },
   { label: "Files", href: "/files", icon: "folder" },
   { label: "Settings", href: "/app/settings/profile", icon: "settings" },
