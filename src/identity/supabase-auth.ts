@@ -1,4 +1,3 @@
-import { createBrowserClient } from "@supabase/ssr";
 import type { AuthService } from "./auth-service";
 import type {
   AuthResult,
@@ -50,7 +49,7 @@ function mapSession(supabaseSession: unknown): IdentitySession {
   };
 }
 
-export function createSupabaseAuthService(): AuthService {
+export async function createSupabaseAuthService(): Promise<AuthService> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -60,6 +59,7 @@ export function createSupabaseAuthService(): AuthService {
     );
   }
 
+  const { createBrowserClient } = await import("@supabase/ssr");
   const client = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
   return {
@@ -73,7 +73,6 @@ export function createSupabaseAuthService(): AuthService {
         email: params.username,
         password: params.password,
       });
-
       if (error) {
         return {
           session: {
@@ -88,7 +87,6 @@ export function createSupabaseAuthService(): AuthService {
           },
         };
       }
-
       return { session: mapSession(data.session), error: null };
     },
 
@@ -97,13 +95,9 @@ export function createSupabaseAuthService(): AuthService {
         email: `${params.username}@placeholder.dev`,
         password: params.password,
         options: {
-          data: {
-            username: params.username,
-            display_name: params.displayName,
-          },
+          data: { username: params.username, display_name: params.displayName },
         },
       });
-
       if (error) {
         return {
           session: {
@@ -118,21 +112,19 @@ export function createSupabaseAuthService(): AuthService {
           },
         };
       }
-
       return { session: mapSession(data.session), error: null };
     },
 
     signOut: async () => {
       const { error } = await client.auth.signOut();
-      if (error) {
-        return {
-          error: {
-            code: error.status?.toString() ?? "unknown",
-            message: error.message,
-          },
-        };
-      }
-      return { error: null };
+      return {
+        error: error
+          ? {
+              code: error.status?.toString() ?? "unknown",
+              message: error.message,
+            }
+          : null,
+      };
     },
 
     refreshSession: async () => {
