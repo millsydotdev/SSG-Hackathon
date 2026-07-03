@@ -3,6 +3,7 @@
 import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useHackathon } from "@/core/hackathon";
+import { CardSkeleton } from "@/components/ui/page-skeleton";
 import { createIdeasService, IDEA_CATEGORIES, IDEA_STATUSES, IDEA_PRIORITIES, type Idea, type IdeaPriority, type IdeaCategory } from "@/core/ideas";
 
 const statusStyles: Record<string, string> = {
@@ -191,13 +192,7 @@ export default function IdeasPage() {
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-xl">
-            <div className="flex items-center gap-sm">
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
-              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
-            </div>
-          </div>
+          <CardSkeleton count={4} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-sm py-xl text-center">
             <span className="material-symbols-outlined text-[48px] text-on-surface-variant/30">lightbulb</span>

@@ -10,17 +10,11 @@ export { Tag } from "./tag";
 export { Card, CardHeader, CardTitle, CardBody, CardFooter } from "./card";
 export { Progress } from "./progress";
 export { Skeleton, SkeletonCard } from "./skeleton";
+export { PageSkeleton, CardSkeleton, BoardSkeleton } from "./page-skeleton";
 export { EmptyState } from "./empty-state";
 export { ErrorState } from "./error-state";
 export { Tabs, TabContent } from "./tabs";
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from "./table";
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "./table";
 export { Breadcrumb } from "./breadcrumb";
 export { Dialog } from "./dialog";
 export { DialogFooter } from "./dialog-footer";
