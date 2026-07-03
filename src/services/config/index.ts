@@ -1,5 +1,3 @@
-import { getEnvOrThrow } from "./env";
-
 export const config = {
   app: {
     name: process.env.NEXT_PUBLIC_APP_NAME ?? "SSG-Hackathon",
@@ -9,8 +7,8 @@ export const config = {
       "development" | "preview" | "production",
   },
   supabase: {
-    url: getEnvOrThrow("NEXT_PUBLIC_SUPABASE_URL"),
-    anonKey: getEnvOrThrow("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   },
   redis: {
