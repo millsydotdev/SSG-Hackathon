@@ -37,7 +37,7 @@ const eslintConfig = defineConfig([
       "no-undef-init": "error",
       "no-unmodified-loop-condition": "error",
       "no-unreachable-loop": "error",
-      "no-use-before-define": "error",
+      "no-use-before-define": ["error", { functions: false }],
       "require-await": "error",
       "no-var": "error",
       "prefer-const": "error",
