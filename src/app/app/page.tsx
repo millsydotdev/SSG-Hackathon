@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useHackathon } from "@/core/hackathon";
 import { loadMissionControl, type MissionControlData } from "@/core/mission-control";
+import { createActivityService, MODULE_ICONS, type ActivityEvent } from "@/core/activity";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
   const [data, setData] = useState<MissionControlData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState("");
+  const [activity, setActivity] = useState<ActivityEvent[]>([]);
 
   // Live countdown
   useEffect(() => {
@@ -29,7 +31,10 @@ export default function MissionControlPage() {
   useEffect(() => {
     if (!activeHackathon) return;
     setIsLoading(true);
-    loadMissionControl(activeHackathon.id).then(setData).catch(() => {}).finally(() => setIsLoading(false));
+    Promise.all([
+      loadMissionControl(activeHackathon.id),
+      createActivityService().list(activeHackathon.id, 10),
+    ]).then(([d, a]) => { setData(d); setActivity(a); }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon]);
 
   // Determine submission readiness
@@ -203,10 +208,27 @@ export default function MissionControlPage() {
                 {/* Recent Activity */}
                 <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
                   <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Activity</h2>
-                  <div className="flex flex-col items-center gap-sm py-lg text-center">
-                    <span className="material-symbols-outlined text-[32px] text-on-surface-variant/30">history</span>
-                    <p className="font-mono text-[10px] text-on-surface-variant">Activity tracking coming soon</p>
-                  </div>
+                  {activity.length === 0 ? (
+                    <div className="flex flex-col items-center gap-sm py-lg text-center">
+                      <span className="material-symbols-outlined text-[32px] text-on-surface-variant/30">history</span>
+                      <p className="font-mono text-[10px] text-on-surface-variant">No activity yet</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-xs">
+                      {activity.map((event) => (
+                        <div key={event.id} className="flex items-start gap-sm rounded px-sm py-sm transition-colors hover:bg-surface-container-high">
+                          <span className="material-symbols-outlined mt-[2px] text-[14px] text-on-surface-variant">{MODULE_ICONS[event.module] ?? "circle"}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-body-sm text-on-surface">{event.title}</p>
+                            <p className="font-mono text-[9px] text-on-surface-variant">
+                              {event.module} · {formatTimeAgo(event.createdAt)}
+                              {event.actor && ` · by ${event.actor}`}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,6 +237,17 @@ export default function MissionControlPage() {
       </div>
     </div>
   );
+}
+
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 function ProgressWidget({ label, pct, sub, color, large }: { label: string; pct: number; sub: string; color: string; large?: boolean }) {
