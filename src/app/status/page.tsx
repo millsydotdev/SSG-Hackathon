@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AuthCard, AuthPageShell } from "@/components/auth";
 
 export const metadata: Metadata = {
   title: "System Status",
@@ -7,10 +8,10 @@ export const metadata: Metadata = {
 
 export default function StatusPage() {
   return (
-    <div className="mx-auto w-full max-w-lg">
-      <div className="border-outline-variant bg-surface p-xl rounded border">
-        <div className="mb-lg border-outline-variant pb-lg border-b">
-          <h1 className="text-h1 text-on-surface font-semibold">
+    <AuthPageShell>
+      <AuthCard>
+        <div className="mb-sm border-outline-variant pb-sm border-b">
+          <h1 className="text-h2 text-on-surface font-semibold">
             System Status
           </h1>
           <p className="mt-xs text-on-surface-variant font-mono text-[11px]">
@@ -56,7 +57,7 @@ export default function StatusPage() {
           </div>
         </div>
 
-        <div className="mt-lg border-outline-variant pt-lg border-t">
+        <div className="mt-sm border-outline-variant pt-md border-t">
           <Link
             href="/login"
             className="text-body-sm text-primary transition-opacity hover:opacity-80"
@@ -64,7 +65,7 @@ export default function StatusPage() {
             Back to Sign In
           </Link>
         </div>
-      </div>
-    </div>
+      </AuthCard>
+    </AuthPageShell>
   );
 }

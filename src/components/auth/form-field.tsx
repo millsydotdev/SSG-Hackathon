@@ -18,7 +18,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
     const inputId = id ?? label.toLowerCase().replace(/\s+/g, "-");
 
     return (
-      <div className="flex flex-col gap-[2px]">
+      <div className="gap-xs flex flex-col">
         <label
           htmlFor={inputId}
           className="text-on-surface font-mono text-[10px] font-bold tracking-widest uppercase"
@@ -48,7 +48,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
                   : undefined
             }
             className={cn(
-              "px-md py-xs text-body-sm text-on-surface w-full rounded border bg-black transition-colors duration-150",
+              "px-md py-md text-body-sm text-on-surface w-full rounded border bg-black transition-colors duration-150",
               "placeholder:text-on-surface-variant/50",
               "caret-primary",
               "focus:outline-none",
