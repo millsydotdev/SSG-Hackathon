@@ -25,9 +25,7 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    setTimeout(() => setIsLoading(false), 1000);
   }
 
   return (
@@ -37,7 +35,7 @@ export default function LoginPage() {
         subtitle="Enter your credentials to access the workstation."
       />
 
-      <form onSubmit={handleSubmit} className="gap-md flex flex-col" noValidate>
+      <form onSubmit={handleSubmit} className="gap-sm flex flex-col" noValidate>
         <FormField
           label="Username"
           type="text"

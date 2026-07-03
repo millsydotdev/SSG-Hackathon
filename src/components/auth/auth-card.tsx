@@ -15,7 +15,7 @@ export function AuthCard({
   return (
     <div
       className={cn(
-        "border-outline-variant bg-surface p-xl w-full rounded border",
+        "border-outline-variant bg-surface p-lg w-full rounded border",
         className,
       )}
       style={{ maxWidth }}
@@ -33,9 +33,9 @@ interface AuthHeaderProps {
 
 export function AuthHeader({ title, subtitle, logo }: AuthHeaderProps) {
   return (
-    <div className="mb-lg gap-sm flex flex-col items-center">
+    <div className="mb-md gap-xs flex flex-col items-center">
       {logo && (
-        <div className="bg-primary text-h2 text-on-primary flex h-12 w-12 items-center justify-center rounded font-bold tracking-tighter shadow-[0_0_15px_rgba(224,30,46,0.3)]">
+        <div className="mb-xs bg-primary text-h2 text-on-primary flex h-10 w-10 items-center justify-center rounded font-bold tracking-tighter">
           {logo}
         </div>
       )}
@@ -58,7 +58,7 @@ export function AuthFooter({ children, className }: AuthFooterProps) {
   return (
     <div
       className={cn(
-        "mt-lg gap-sm border-outline-variant pt-lg flex flex-col items-center border-t",
+        "mt-md gap-sm border-outline-variant pt-md flex flex-col items-center border-t",
         className,
       )}
     >
@@ -69,7 +69,7 @@ export function AuthFooter({ children, className }: AuthFooterProps) {
 
 export function AuthDivider() {
   return (
-    <div className="gap-sm py-sm flex items-center" role="separator">
+    <div className="gap-sm py-xs flex items-center" role="separator">
       <div className="bg-outline-variant/50 h-px flex-1" />
       <span className="text-body-sm text-on-surface-variant">or</span>
       <div className="bg-outline-variant/50 h-px flex-1" />

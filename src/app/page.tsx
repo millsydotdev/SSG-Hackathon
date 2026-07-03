@@ -9,10 +9,10 @@ export default function HomePage() {
         title="SSG-Hackathon"
         subtitle="Private Collaborative Workstation"
       />
-      <p className="mb-lg text-body-sm text-on-surface-variant text-center">
+      <p className="mb-md text-body-sm text-on-surface-variant text-center">
         Access is restricted to invited members.
       </p>
-      <div className="gap-sm flex flex-col">
+      <div className="gap-xs flex flex-col">
         <Link
           href="/login"
           className="bg-primary px-md py-sm text-body-sm text-on-primary inline-flex w-full items-center justify-center rounded font-medium transition-colors hover:bg-[#c01826]"
@@ -26,7 +26,7 @@ export default function HomePage() {
           Join Team
         </Link>
       </div>
-      <div className="mt-lg gap-lg border-outline-variant pt-lg flex items-center justify-center border-t">
+      <div className="mt-md gap-md border-outline-variant pt-md flex items-center justify-center border-t">
         <Link
           href="/privacy"
           className="text-on-surface-variant hover:text-on-surface font-mono text-[10px] transition-colors"
