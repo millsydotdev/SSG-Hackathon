@@ -2,250 +2,258 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAuth } from "@/identity";
 import { useHackathon } from "@/core/hackathon";
-import { createProfileService, type Profile } from "@/core/profile";
-import { StatusIndicator } from "@/packages/ui";
+import { loadMissionControl, type MissionControlData } from "@/core/mission-control";
 
-const statusLabels: Record<string, string> = {
-  draft: "Draft",
-  upcoming: "Upcoming",
-  active: "Active",
-  submission: "Submission Phase",
-  judging: "Judging",
-  completed: "Completed",
-  archived: "Archived",
-};
+export default function MissionControlPage() {
+  const { activeHackathon } = useHackathon();
+  const [data, setData] = useState<MissionControlData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState("");
 
-export default function OverviewPage() {
-  const { state, activeHackathon, hackathons, activate, archive } = useHackathon();
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  // Live countdown
+  useEffect(() => {
+    if (!activeHackathon?.endDate) return;
+    const tick = () => {
+      const diff = new Date(activeHackathon.endDate!).getTime() - Date.now();
+      if (diff <= 0) { setTimeLeft("Ended"); return; }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setTimeLeft(`${d}d ${h}h ${m}m`);
+    };
+    tick(); const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, [activeHackathon?.endDate]);
 
   useEffect(() => {
-    if (!user) return;
-    createProfileService().getById(user.id).then(setProfile).catch(() => {});
-  }, [user]);
+    if (!activeHackathon) return;
+    setIsLoading(true);
+    loadMissionControl(activeHackathon.id).then(setData).catch(() => {}).finally(() => setIsLoading(false));
+  }, [activeHackathon]);
 
-  if (state === "loading") {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="gap-sm flex items-center">
-          <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full" />
-          <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full [animation-delay:150ms]" />
-          <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full [animation-delay:300ms]" />
-        </div>
-      </div>
-    );
-  }
-
-  if (state === "error" || !activeHackathon) {
-    return (
-      <div className="p-lg flex h-full items-center justify-center">
-        <div className="gap-md flex max-w-lg flex-col items-center text-center">
-          <span className="material-symbols-outlined text-on-surface-variant/30 text-[48px]">
-            emoji_events
-          </span>
-          <h1 className="text-h1 text-on-surface font-semibold">
-            No Active Hackathon
-          </h1>
-          <p className="text-body-sm text-on-surface-variant">
-            Create a new hackathon to get started. You can set it up with all
-            the details your team needs to collaborate.
-          </p>
-          <div className="gap-sm flex">
-            <Link
-              href="/app/hackathons/new"
-              className="gap-sm bg-primary px-md py-sm text-body-sm text-on-primary inline-flex items-center rounded font-medium transition-colors hover:bg-[#c01826]"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              Create Hackathon
-            </Link>
-            {hackathons.length > 0 && (
-              <Link
-                href="/app/hackathons"
-                className="gap-sm border-outline-variant px-md py-sm text-body-sm text-on-surface hover:border-on-surface inline-flex items-center rounded border bg-black transition-colors"
-              >
-                View Archive
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const archived = hackathons.filter((h) => h.status === "archived");
+  // Determine submission readiness
+  const subPct = data ? (data.deliverables.total > 0 ? Math.round((data.deliverables.complete / data.deliverables.total) * 100) : 0) : 0;
+  const subReadinessLabel = data?.submission.locked ? "Submission Locked" : data?.submission.status === "submitted" ? "Submitted" : subPct >= 90 ? "Ready" : subPct >= 50 ? "Needs Work" : "Getting Started";
+  const subReadinessColor = data?.submission.locked ? "text-primary" : subPct >= 90 ? "text-[#3fb950]" : subPct >= 50 ? "text-[#d29922]" : "text-on-surface-variant";
 
   return (
-    <div className="p-lg">
-      <div className="gap-lg mx-auto flex max-w-[1600px] flex-col">
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-h1 text-on-surface font-semibold">Overview</h1>
-            <p className="text-on-surface-variant font-mono text-[11px]">
-              Current hackathon workspace
-            </p>
+    <div className="overflow-y-auto p-lg scrollbar-thin">
+      <div className="mx-auto max-w-[1600px]">
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <div className="flex items-center gap-sm">
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
+            </div>
           </div>
-          <div className="gap-sm flex items-center">
-            <Link
-              href={`/app/hackathons/${activeHackathon.id}/edit`}
-              className="gap-xs border-outline-variant px-sm py-xs text-body-sm text-on-surface hover:border-on-surface inline-flex items-center rounded border bg-black transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                edit
-              </span>
-              Edit
+        ) : !activeHackathon ? (
+          <div className="flex flex-col items-center gap-md py-xl text-center">
+            <span className="material-symbols-outlined text-[64px] text-on-surface-variant/20">rocket_launch</span>
+            <h1 className="text-h1 font-semibold text-on-surface">Welcome to SSG-Hackathon</h1>
+            <p className="text-body-sm text-on-surface-variant">Create your first hackathon to get started.</p>
+            <Link href="/app/hackathons/new"
+              className="inline-flex items-center gap-sm rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">
+              <span className="material-symbols-outlined text-[16px]">add</span>Create Hackathon
             </Link>
-            <button
-              type="button"
-              onClick={() => archive(activeHackathon.id)}
-              className="gap-xs border-error/30 px-sm py-xs text-body-sm text-error hover:border-error inline-flex items-center rounded border transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                archive
-              </span>
-              Archive
-            </button>
           </div>
-        </div>
-
-        <div className="border-outline-variant/30 bg-surface-container p-lg rounded border">
-          <div className="flex items-start justify-between">
-            <div className="gap-lg flex items-start">
-              {activeHackathon.logoUrl ? (
-                <img
-                  src={activeHackathon.logoUrl}
-                  alt=""
-                  className="h-16 w-16 rounded object-cover"
-                />
-              ) : (
-                <div className="bg-primary/10 text-primary flex h-16 w-16 items-center justify-center rounded text-[28px]">
-                  <span className="material-symbols-outlined">
-                    emoji_events
-                  </span>
-                </div>
-              )}
+        ) : (
+          <>
+            {/* Header */}
+            <div className="mb-lg flex items-start justify-between">
               <div>
-                <h2 className="text-h2 text-on-surface font-semibold">
-                  {activeHackathon.name}
-                </h2>
-                <p className="mt-xs text-on-surface-variant font-mono text-[11px]">
-                  {activeHackathon.organizer}
-                  {activeHackathon.location && ` · ${activeHackathon.location}`}
+                <h1 className="text-h1 font-semibold text-on-surface">{activeHackathon.name}</h1>
+                <p className="font-mono text-[11px] text-on-surface-variant">
+                  {activeHackathon.organizer}{activeHackathon.location ? ` · ${activeHackathon.location}` : ""}
+                  {timeLeft ? ` · ${timeLeft} remaining` : ""}
                 </p>
-                <div className="mt-sm gap-md flex items-center">
-                  <StatusIndicator
-                    status={
-                      activeHackathon.status === "active"
-                        ? "active"
-                        : activeHackathon.status === "completed"
-                          ? "idle"
-                          : "paused"
-                    }
-                    label={
-                      statusLabels[activeHackathon.status] ??
-                      activeHackathon.status
-                    }
-                    pulse={activeHackathon.status === "active"}
-                  />
-                  {activeHackathon.website && (
-                    <a
-                      href={activeHackathon.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary font-mono text-[10px] transition-opacity hover:opacity-80"
-                    >
-                      Website ↗
-                    </a>
-                  )}
+              </div>
+              <div className="flex items-center gap-sm">
+                <Link href="/app/planning" className="rounded border border-outline-variant bg-black px-sm py-xs text-body-sm text-on-surface transition-colors hover:border-on-surface">Planning</Link>
+                <Link href="/app/tasks" className="rounded border border-outline-variant bg-black px-sm py-xs text-body-sm text-on-surface transition-colors hover:border-on-surface">Tasks</Link>
+                <Link href="/app/submission" className="rounded bg-primary px-sm py-xs text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">Submission</Link>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-lg lg:grid-cols-3">
+              {/* Left column - Progress + Countdown */}
+              <div className="flex flex-col gap-lg lg:col-span-2">
+                {/* Progress overview */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Progress Overview</h2>
+                  <div className="grid grid-cols-2 gap-md sm:grid-cols-3">
+                    <ProgressWidget label="Planning" pct={data?.planning.pct ?? 0} sub={data?.planning.label ?? ""} color="bg-primary" />
+                    <ProgressWidget label="Ideas" pct={data?.ideas.pct ?? 0} sub={data?.ideas.label ?? ""} color="bg-[#d29922]" />
+                    <ProgressWidget label="Research" pct={data?.research.pct ?? 0} sub={data?.research.label ?? ""} color="bg-[#3fb950]" />
+                    <ProgressWidget label="Tasks" pct={data?.tasks.total ? Math.round((data.tasks.done / data.tasks.total) * 100) : 0} sub={`${data?.tasks.done ?? 0}/${data?.tasks.total ?? 0}`} color="bg-primary" />
+                    <ProgressWidget label="Deliverables" pct={subPct} sub={`${data?.deliverables.complete ?? 0}/${data?.deliverables.total ?? 0}`} color="bg-[#3fb950]" />
+                    <ProgressWidget label="Overall" pct={data?.overall.pct ?? 0} sub={data?.overall.label ?? ""} color={data && data.overall.pct >= 80 ? "bg-[#3fb950]" : "bg-primary"} large />
+                  </div>
+                </div>
+
+                {/* Submission Readiness */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Submission Readiness</h2>
+                      <p className={`mt-xs text-[48px] font-bold leading-none tracking-tight ${subReadinessColor}`}>{subPct}%</p>
+                      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{subReadinessLabel}</p>
+                    </div>
+                    <Link href="/app/submission" className="rounded border border-outline-variant bg-black px-md py-sm text-body-sm text-on-surface transition-colors hover:border-on-surface">Open Submission</Link>
+                  </div>
+                </div>
+
+                {/* Team Snapshot + My Work */}
+                <div className="grid grid-cols-1 gap-lg sm:grid-cols-2">
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Team</h2>
+                    <div className="flex items-center gap-md">
+                      <span className="text-[32px] font-bold text-on-surface">{data?.team.total ?? 0}</span>
+                      <span className="font-mono text-[10px] text-on-surface-variant">members</span>
+                    </div>
+                    <div className="mt-sm flex gap-md font-mono text-[10px] text-on-surface-variant">
+                      <span>{data?.team.owners ?? 0} owner{data?.team.owners !== 1 ? "s" : ""}</span>
+                      <span>{data?.team.leads ?? 0} lead{data?.team.leads !== 1 ? "s" : ""}</span>
+                      <span>{data?.team.members ?? 0} member{data?.team.members !== 1 ? "s" : ""}</span>
+                    </div>
+                    <div className="mt-md">
+                      <Link href="/app/team" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Team →</Link>
+                    </div>
+                  </div>
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">My Work</h2>
+                    {data && data.myWork.assignedTasks > 0 ? (
+                      <div className="flex flex-col gap-xs">
+                        <span className="text-[32px] font-bold text-on-surface">{data.myWork.assignedTasks}</span>
+                        <span className="font-mono text-[10px] text-on-surface-variant">assigned task{data.myWork.assignedTasks !== 1 ? "s" : ""}</span>
+                      </div>
+                    ) : (
+                      <p className="font-mono text-[10px] text-on-surface-variant">No assigned tasks</p>
+                    )}
+                    <div className="mt-md">
+                      <Link href="/app/tasks" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Tasks →</Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Today */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Today</h2>
+                  <div className="grid grid-cols-2 gap-md sm:grid-cols-4">
+                    <TodayWidget label="Tasks Due" count={data?.tasks.dueToday ?? 0} />
+                    <TodayWidget label="In Progress" count={data?.tasks.inProgress ?? 0} color="text-primary" />
+                    <TodayWidget label="Blocked" count={data?.tasks.blocked ?? 0} color="text-error" />
+                    <TodayWidget label="Done" count={data?.tasks.done ?? 0} color="text-[#3fb950]" />
+                  </div>
+                </div>
+
+                {/* Blockers */}
+                {data && (data.blockers.blockedTasks > 0 || data.blockers.blockedDeliverables > 0 || data.blockers.highRisks > 0 || data.blockers.missingSubmission > 0) && (
+                  <div className="rounded border border-error/30 bg-error/5 p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-error">Blockers</h2>
+                    <div className="grid grid-cols-2 gap-md sm:grid-cols-4">
+                      {data.blockers.blockedTasks > 0 && <BlockerWidget label="Blocked Tasks" count={data.blockers.blockedTasks} />}
+                      {data.blockers.blockedDeliverables > 0 && <BlockerWidget label="Blocked Deliverables" count={data.blockers.blockedDeliverables} />}
+                      {data.blockers.highRisks > 0 && <BlockerWidget label="High Risks" count={data.blockers.highRisks} />}
+                      {data.blockers.missingSubmission > 0 && <BlockerWidget label="Missing Submission" count={data.blockers.missingSubmission} />}
+                    </div>
+                  </div>
+                )}
+
+                {/* Upcoming */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Upcoming</h2>
+                  <div className="flex flex-wrap gap-lg font-mono text-[10px] text-on-surface-variant">
+                    <span>{data?.upcoming.milestones ?? 0} active milestone{(data?.upcoming.milestones ?? 0) !== 1 ? "s" : ""}</span>
+                    <span>{data?.upcoming.deadlines ?? 0} task deadline{(data?.upcoming.deadlines ?? 0) !== 1 ? "s" : ""}</span>
+                    {activeHackathon.endDate && <span>Submission: {new Date(activeHackathon.endDate).toLocaleDateString()}</span>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right column - Quick Actions + Activity */}
+              <div className="flex flex-col gap-lg">
+                {/* Quick Actions */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Quick Actions</h2>
+                  <div className="flex flex-col gap-xs">
+                    <QuickAction href="/app/tasks" icon="add" label="Create Task" />
+                    <QuickAction href="/app/ideas" icon="lightbulb" label="New Idea" />
+                    <QuickAction href="/app/notes" icon="note" label="New Note" />
+                    <QuickAction href="/app/files" icon="upload" label="Upload File" />
+                    <QuickAction href="/app/research" icon="travel_explore" label="Add Research" />
+                    <QuickAction href="/app/team/invitations" icon="group" label="Invite Member" />
+                    <QuickAction href="/app/submission" icon="task_alt" label="Open Submission" />
+                    <QuickAction href="/app/planning" icon="map" label="View Planning" />
+                  </div>
+                </div>
+
+                {/* Command Palette Entry */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Quick Search</h2>
+                    <kbd className="rounded border border-outline-variant bg-black px-sm py-xs font-mono text-[9px] text-on-surface-variant">⌘K</kbd>
+                  </div>
+                  <div className="mt-sm rounded border border-outline-variant/30 bg-black px-md py-sm text-body-sm text-on-surface-variant/50">
+                    Search anything...
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Activity</h2>
+                  <div className="flex flex-col items-center gap-sm py-lg text-center">
+                    <span className="material-symbols-outlined text-[32px] text-on-surface-variant/30">history</span>
+                    <p className="font-mono text-[10px] text-on-surface-variant">Activity tracking coming soon</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-
-        {activeHackathon.description && (
-          <p className="mt-lg text-body-sm text-on-surface-variant">
-            {activeHackathon.description}
-          </p>
-        )}
-
-        {profile && (
-          <div className="mt-lg border-t border-outline-variant/30 pt-lg">
-            <div className="flex items-center gap-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-container font-mono text-[12px] font-medium text-white">
-                {profile.displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-body-sm font-medium text-on-surface">{profile.displayName}</p>
-                <p className="font-mono text-[10px] text-on-surface-variant">@{profile.username}</p>
-              </div>
-              <Link
-                href="/app/settings/profile"
-                className="ml-auto font-mono text-[10px] text-primary transition-opacity hover:opacity-80"
-              >
-                Edit Profile
-              </Link>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-lg grid grid-cols-1 gap-md sm:grid-cols-3">
-          <Link href="/app/team"
-            className="rounded border border-outline-variant/30 bg-surface-container-low p-md transition-colors hover:bg-surface-container">
-            <span className="material-symbols-outlined text-[20px] text-primary">group</span>
-            <p className="mt-xs text-body-sm font-medium text-on-surface">Team</p>
-            <p className="font-mono text-[10px] text-on-surface-variant">View team members</p>
-          </Link>
-          <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
-            <span className="material-symbols-outlined text-[20px] text-on-surface-variant/50">assignment</span>
-            <p className="mt-xs text-body-sm font-medium text-on-surface">Tasks</p>
-            <p className="font-mono text-[10px] text-on-surface-variant">No tasks assigned yet</p>
-          </div>
-          <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
-            <span className="material-symbols-outlined text-[20px] text-on-surface-variant/50">event</span>
-            <p className="mt-xs text-body-sm font-medium text-on-surface">Deadlines</p>
-            <p className="font-mono text-[10px] text-on-surface-variant">
-              {activeHackathon.endDate
-                ? `Ends ${new Date(activeHackathon.endDate).toLocaleDateString()}`
-                : "No deadlines set"}
-            </p>
-          </div>
-        </div>
-        </div>
-
-        {archived.length > 0 && (
-          <div>
-            <h2 className="mb-sm text-h2 text-on-surface font-semibold">
-              Previous Hackathons
-            </h2>
-            <div className="gap-sm flex flex-col">
-              {archived.map((h) => (
-                <button
-                  key={h.id}
-                  type="button"
-                  onClick={() => activate(h.id)}
-                  className="border-outline-variant/30 bg-surface-container-low px-lg py-sm hover:bg-surface-container flex items-center justify-between rounded border text-left transition-colors"
-                >
-                  <div>
-                    <p className="text-body-sm text-on-surface font-medium">
-                      {h.name}
-                    </p>
-                    <p className="text-on-surface-variant font-mono text-[10px]">
-                      {h.organizer}
-                      {h.startDate &&
-                        ` · ${new Date(h.startDate).toLocaleDateString()}`}
-                    </p>
-                  </div>
-                  <span className="text-primary font-mono text-[10px]">
-                    Reactivate
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+function ProgressWidget({ label, pct, sub, color, large }: { label: string; pct: number; sub: string; color: string; large?: boolean }) {
+  return (
+    <div className={large ? "sm:col-span-3" : ""}>
+      <div className="mb-xs flex justify-between font-mono text-[10px] text-on-surface-variant">
+        <span>{label}</span><span>{sub}</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
+        <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function TodayWidget({ label, count, color }: { label: string; count: number; color?: string }) {
+  return (
+    <div>
+      <p className={`text-[24px] font-bold leading-none ${color ?? "text-on-surface"}`}>{count}</p>
+      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{label}</p>
+    </div>
+  );
+}
+
+function BlockerWidget({ label, count }: { label: string; count: number }) {
+  return (
+    <div>
+      <p className="text-[24px] font-bold leading-none text-error">{count}</p>
+      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{label}</p>
+    </div>
+  );
+}
+
+function QuickAction({ href, icon, label }: { href: string; icon: string; label: string }) {
+  return (
+    <Link href={href}
+      className="flex items-center gap-sm rounded px-sm py-sm text-body-sm text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface">
+      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+      {label}
+    </Link>
   );
 }
