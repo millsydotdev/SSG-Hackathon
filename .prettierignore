@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+build
+dist
+coverage
+.git
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+package-lock.json

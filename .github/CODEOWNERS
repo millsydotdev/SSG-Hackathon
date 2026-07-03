@@ -1,0 +1,21 @@
+# Default owners for the entire repository
+* @maintainers
+
+# Security-related files
+SECURITY.md @security-team
+.github/security.md @security-team
+
+# CI/CD configuration
+.github/workflows/ @devops-team
+
+# Configuration files
+.eslintrc* @frontend-team
+tsconfig.json @frontend-team
+next.config.* @frontend-team
+
+# Documentation
+docs/ @docs-team
+README.md @docs-team
+
+# Root package.json
+package.json @maintainers

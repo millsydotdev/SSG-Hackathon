@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Discussion
+    url: https://github.com/org/ssg-hackathon/discussions
+    about: Please ask and answer questions here.
+  - name: Security Issue
+    url: ./SECURITY.md
+    about: Please report security vulnerabilities here.
