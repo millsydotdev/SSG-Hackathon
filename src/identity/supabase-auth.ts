@@ -1,5 +1,4 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { config } from "@/services/config";
 import type { AuthService } from "./auth-service";
 import type {
   AuthResult,
@@ -52,10 +51,16 @@ function mapSession(supabaseSession: unknown): IdentitySession {
 }
 
 export function createSupabaseAuthService(): AuthService {
-  const client = createBrowserClient(
-    config.supabase.url,
-    config.supabase.anonKey,
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    );
+  }
+
+  const client = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
   return {
     getSession: async () => {

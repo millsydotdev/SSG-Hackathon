@@ -1,28 +1,32 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { SessionStoreProvider } from "./session-store";
 import { createSupabaseAuthService } from "./supabase-auth";
-import type { AuthService } from "./auth-service";
 
-let defaultAuthService: AuthService | null = null;
+let singletonAuth: ReturnType<typeof createSupabaseAuthService> | null;
 
-function getDefaultAuthService(): AuthService {
-  if (!defaultAuthService) {
-    defaultAuthService = createSupabaseAuthService();
+function getAuth() {
+  if (singletonAuth === undefined) {
+    try {
+      singletonAuth = createSupabaseAuthService();
+    } catch (err) {
+      console.error("[IdentityProvider] Failed to create auth service:", err);
+      singletonAuth = null;
+    }
   }
-  return defaultAuthService;
+  return singletonAuth;
 }
 
-export function IdentityProvider({
-  children,
-  authService,
-}: {
-  children: ReactNode;
-  authService?: AuthService;
-}) {
+export function IdentityProvider({ children }: { children: ReactNode }) {
+  const [authService] = useState(getAuth);
+
+  if (!authService) {
+    console.warn("[IdentityProvider] Auth unavailable");
+  }
+
   return (
-    <SessionStoreProvider authService={authService ?? getDefaultAuthService()}>
+    <SessionStoreProvider authService={authService}>
       {children}
     </SessionStoreProvider>
   );

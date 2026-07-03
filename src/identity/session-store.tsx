@@ -16,16 +16,6 @@ import type {
   SignUpParams,
 } from "./types";
 
-const EMPTY_RESULT: AuthResult = {
-  session: {
-    user: null,
-    status: "unauthenticated",
-    accessToken: null,
-    expiresAt: null,
-  },
-  error: { code: "", message: "Not initialized" },
-};
-
 interface SessionStoreValue {
   session: IdentitySession;
   isLoading: boolean;
@@ -43,6 +33,11 @@ const EMPTY_SESSION: IdentitySession = {
   expiresAt: null,
 };
 
+const EMPTY_RESULT: AuthResult = {
+  session: EMPTY_SESSION,
+  error: { code: "", message: "Not initialized" },
+};
+
 const SessionStoreContext = createContext<SessionStoreValue>({
   session: EMPTY_SESSION,
   isLoading: true,
@@ -58,37 +53,48 @@ export function SessionStoreProvider({
   authService,
 }: {
   children: ReactNode;
-  authService: AuthService;
+  authService: AuthService | null;
 }) {
   const [session, setSession] = useState<IdentitySession>(EMPTY_SESSION);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(() => !authService);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!authService) {
+      return;
+    }
+
+    let cancelled = false;
+
     authService.getSession().then((s) => {
-      setSession(s);
-      setIsLoading(false);
+      if (!cancelled) {
+        setSession(s);
+        setIsReady(true);
+      }
     });
 
     const unsubscribe = authService.onAuthStateChange((s) => {
-      setSession(s);
-      setIsLoading(false);
+      if (!cancelled) {
+        setSession(s);
+      }
     });
 
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, [authService]);
 
   const signIn = useCallback(
     async (params: SignInParams) => {
+      if (!authService) return EMPTY_RESULT;
       setError(null);
-      setIsLoading(true);
       const result = await authService.signIn(params);
-      if (result.error) {
-        setError(result.error.message);
-      } else {
+      if (!result.error) {
         setSession(result.session);
+      } else {
+        setError(result.error.message);
       }
-      setIsLoading(false);
       return result;
     },
     [authService],
@@ -96,34 +102,43 @@ export function SessionStoreProvider({
 
   const signUp = useCallback(
     async (params: SignUpParams) => {
+      if (!authService) return EMPTY_RESULT;
       setError(null);
-      setIsLoading(true);
       const result = await authService.signUp(params);
-      if (result.error) {
-        setError(result.error.message);
-      } else {
+      if (!result.error) {
         setSession(result.session);
+      } else {
+        setError(result.error.message);
       }
-      setIsLoading(false);
       return result;
     },
     [authService],
   );
 
   const signOut = useCallback(async () => {
+    if (!authService) return;
     setError(null);
     await authService.signOut();
     setSession(EMPTY_SESSION);
   }, [authService]);
 
   const refresh = useCallback(async () => {
+    if (!authService) return;
     const s = await authService.refreshSession();
     setSession(s);
   }, [authService]);
 
   return (
     <SessionStoreContext.Provider
-      value={{ session, isLoading, error, signIn, signUp, signOut, refresh }}
+      value={{
+        session,
+        isLoading: !isReady,
+        error,
+        signIn,
+        signUp,
+        signOut,
+        refresh,
+      }}
     >
       {children}
     </SessionStoreContext.Provider>
