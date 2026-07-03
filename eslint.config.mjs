@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
+      "@next/next/no-img-element": "off",
       "no-console": [
         "warn",
         { allow: ["warn", "error", "info", "debug", "log"] },

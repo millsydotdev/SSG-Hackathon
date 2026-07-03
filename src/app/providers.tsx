@@ -6,8 +6,8 @@ import { CommandPaletteProvider, ToastProvider } from "@/packages/providers";
 import { FeatureFlagsProvider } from "@/core/flags";
 import { NotificationProvider } from "@/core/notification";
 import { PermissionProvider } from "@/core/permissions";
-import { WorkspaceContextProvider } from "@/core/workspace";
 import { IdentityProvider } from "@/identity";
+import { HackathonProvider } from "@/core/hackathon";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -23,13 +23,13 @@ export function Providers({ children }: ProvidersProps) {
       <FeatureFlagsProvider env={env}>
         <IdentityProvider>
           <PermissionProvider roleName={null}>
-            <WorkspaceContextProvider workspace={null}>
+            <HackathonProvider>
               <NotificationProvider>
                 <CommandPaletteProvider>
                   <ToastProvider>{children}</ToastProvider>
                 </CommandPaletteProvider>
               </NotificationProvider>
-            </WorkspaceContextProvider>
+            </HackathonProvider>
           </PermissionProvider>
         </IdentityProvider>
       </FeatureFlagsProvider>
