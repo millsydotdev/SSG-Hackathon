@@ -1,3 +1,0 @@
--- Auth configuration (placeholder for authentication phase)
--- This file seeds initial auth configuration
--- No auth implementation here — prepared for later phase

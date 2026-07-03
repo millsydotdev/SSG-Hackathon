@@ -7,10 +7,8 @@ describe("Badge", () => {
     render(<Badge>NEW</Badge>);
     expect(screen.getByText("NEW")).toBeInTheDocument();
   });
-
   it("applies variant classes", () => {
     render(<Badge variant="primary">Primary</Badge>);
-    const badge = screen.getByText("Primary");
-    expect(badge.className).toContain("primary");
+    expect(screen.getByText("Primary").className).toContain("primary");
   });
 });

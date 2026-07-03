@@ -9,11 +9,8 @@ describe("Input", () => {
     fireEvent.change(input, { target: { value: "hello" } });
     expect(input.value).toBe("hello");
   });
-
   it("renders with start icon", () => {
-    const { container } = render(
-      <Input startIcon={<span>🔍</span>} placeholder="Search" />,
-    );
+    const { container } = render(<Input startIcon={<span>🔍</span>} placeholder="Search" />);
     expect(container.querySelector("input")).toBeInTheDocument();
   });
 });
