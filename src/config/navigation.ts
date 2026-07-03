@@ -10,7 +10,7 @@ export const sidebarNav: NavItem[] = [
   { label: "Hackathons", href: "/app/hackathons", icon: "emoji_events" },
   { label: "Team", href: "/app/team", icon: "group" },
   { label: "Planning", href: "/app/planning", icon: "map" },
-  { label: "Tasks", href: "/tasks", icon: "assignment" },
+  { label: "Tasks", href: "/app/tasks", icon: "assignment" },
   { label: "Ideas", href: "/app/ideas", icon: "lightbulb" },
   { label: "Research", href: "/app/research", icon: "science" },
   { label: "Files", href: "/files", icon: "folder" },
