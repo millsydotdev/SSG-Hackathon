@@ -12,7 +12,7 @@ export const sidebarNav: NavItem[] = [
   { label: "Planning", href: "/app/planning", icon: "map" },
   { label: "Tasks", href: "/tasks", icon: "assignment" },
   { label: "Ideas", href: "/app/ideas", icon: "lightbulb" },
-  { label: "Research", href: "/research", icon: "science" },
+  { label: "Research", href: "/app/research", icon: "science" },
   { label: "Files", href: "/files", icon: "folder" },
   { label: "Settings", href: "/app/settings/profile", icon: "settings" },
 ];
