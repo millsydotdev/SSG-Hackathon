@@ -1,29 +1,54 @@
-import { Sidebar } from "@/components/shell/sidebar";
-import { TopNav } from "@/components/shell/topnav";
-import { Footer } from "@/components/shell/footer";
-import { WorkspaceLayout } from "@/packages/layouts";
+import Link from "next/link";
+import { AuthCard, AuthHeader } from "@/components/auth";
 
 export default function HomePage() {
   return (
-    <WorkspaceLayout
-      sidebar={<Sidebar />}
-      topnav={<TopNav title="Dashboard" />}
-      footer={<Footer />}
-    >
-      <div className="p-lg">
-        <div className="gap-lg mx-auto flex max-w-[1600px] flex-col">
-          <div className="flex items-end justify-between">
-            <div>
-              <h1 className="text-h1 text-on-surface font-semibold">
-                Dashboard
-              </h1>
-              <p className="text-on-surface-variant font-mono text-[11px]">
-                Workspace Overview
-              </p>
-            </div>
-          </div>
-        </div>
+    <AuthCard>
+      <AuthHeader
+        logo="SSG"
+        title="SSG-Hackathon"
+        subtitle="Private Collaborative Workstation"
+      />
+      <p className="mb-lg text-body-sm text-on-surface-variant text-center">
+        Access is restricted to invited members.
+      </p>
+      <div className="gap-sm flex flex-col">
+        <Link
+          href="/login"
+          className="bg-primary px-md py-sm text-body-sm text-on-primary inline-flex w-full items-center justify-center rounded font-medium transition-colors hover:bg-[#c01826]"
+        >
+          Sign In
+        </Link>
+        <Link
+          href="/join"
+          className="border-outline-variant px-md py-sm text-body-sm text-on-surface hover:border-on-surface inline-flex w-full items-center justify-center rounded border bg-black transition-colors"
+        >
+          Join Team
+        </Link>
       </div>
-    </WorkspaceLayout>
+      <div className="mt-lg gap-lg border-outline-variant pt-lg flex items-center justify-center border-t">
+        <Link
+          href="/privacy"
+          className="text-on-surface-variant hover:text-on-surface font-mono text-[10px] transition-colors"
+        >
+          Privacy
+        </Link>
+        <Link
+          href="/terms"
+          className="text-on-surface-variant hover:text-on-surface font-mono text-[10px] transition-colors"
+        >
+          Terms
+        </Link>
+        <Link
+          href="/status"
+          className="text-on-surface-variant hover:text-on-surface font-mono text-[10px] transition-colors"
+        >
+          Status
+        </Link>
+        <span className="text-on-surface-variant font-mono text-[10px]">
+          v0.1
+        </span>
+      </div>
+    </AuthCard>
   );
 }

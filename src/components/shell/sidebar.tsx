@@ -22,7 +22,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="gap-xs border-outline-variant px-md pb-lg pt-md flex flex-col border-b">
         <h2 className="text-h2 text-on-surface font-semibold">SSG-Hackathon</h2>
         <p className="text-on-surface-variant font-mono text-[11px]">
-          Enterprise Workstation
+          Private Workstation
         </p>
       </div>
 

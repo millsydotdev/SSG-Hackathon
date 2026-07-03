@@ -12,10 +12,15 @@ const eslintConfig = defineConfig([
     "node_modules/**",
     "next-env.d.ts",
     "coverage/**",
+    "scripts/**",
+    "src/types/supabase.ts",
   ]),
   {
     rules: {
-      "no-console": ["warn", { allow: ["warn", "error", "info"] }],
+      "no-console": [
+        "warn",
+        { allow: ["warn", "error", "info", "debug", "log"] },
+      ],
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",

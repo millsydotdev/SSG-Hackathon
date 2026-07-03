@@ -1,6 +1,8 @@
 node_modules
 .next
 out
+scripts
+src/types/supabase.ts
 build
 dist
 coverage
