@@ -1,7 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/identity";
 import { useHackathon } from "@/core/hackathon";
+import { createProfileService, type Profile } from "@/core/profile";
 import { StatusIndicator } from "@/packages/ui";
 
 const statusLabels: Record<string, string> = {
@@ -15,8 +18,14 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function OverviewPage() {
-  const { state, activeHackathon, hackathons, activate, archive } =
-    useHackathon();
+  const { state, activeHackathon, hackathons, activate, archive } = useHackathon();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    createProfileService().getById(user.id).then(setProfile).catch(() => {});
+  }, [user]);
 
   if (state === "loading") {
     return (
@@ -155,11 +164,54 @@ export default function OverviewPage() {
             </div>
           </div>
 
-          {activeHackathon.description && (
-            <p className="mt-lg text-body-sm text-on-surface-variant">
-              {activeHackathon.description}
+        {activeHackathon.description && (
+          <p className="mt-lg text-body-sm text-on-surface-variant">
+            {activeHackathon.description}
+          </p>
+        )}
+
+        {profile && (
+          <div className="mt-lg border-t border-outline-variant/30 pt-lg">
+            <div className="flex items-center gap-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-container font-mono text-[12px] font-medium text-white">
+                {profile.displayName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-body-sm font-medium text-on-surface">{profile.displayName}</p>
+                <p className="font-mono text-[10px] text-on-surface-variant">@{profile.username}</p>
+              </div>
+              <Link
+                href="/app/settings/profile"
+                className="ml-auto font-mono text-[10px] text-primary transition-opacity hover:opacity-80"
+              >
+                Edit Profile
+              </Link>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-lg grid grid-cols-1 gap-md sm:grid-cols-3">
+          <Link href="/app/team"
+            className="rounded border border-outline-variant/30 bg-surface-container-low p-md transition-colors hover:bg-surface-container">
+            <span className="material-symbols-outlined text-[20px] text-primary">group</span>
+            <p className="mt-xs text-body-sm font-medium text-on-surface">Team</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">View team members</p>
+          </Link>
+          <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant/50">assignment</span>
+            <p className="mt-xs text-body-sm font-medium text-on-surface">Tasks</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">No tasks assigned yet</p>
+          </div>
+          <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
+            <span className="material-symbols-outlined text-[20px] text-on-surface-variant/50">event</span>
+            <p className="mt-xs text-body-sm font-medium text-on-surface">Deadlines</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">
+              {activeHackathon.endDate
+                ? `Ends ${new Date(activeHackathon.endDate).toLocaleDateString()}`
+                : "No deadlines set"}
             </p>
-          )}
+          </div>
+        </div>
         </div>
 
         {archived.length > 0 && (
