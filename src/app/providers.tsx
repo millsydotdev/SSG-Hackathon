@@ -5,9 +5,9 @@ import { ThemeProvider } from "@/packages/theme";
 import { CommandPaletteProvider, ToastProvider } from "@/packages/providers";
 import { FeatureFlagsProvider } from "@/core/flags";
 import { NotificationProvider } from "@/core/notification";
-import { AuthContextProvider } from "@/core/auth";
 import { PermissionProvider } from "@/core/permissions";
 import { WorkspaceContextProvider } from "@/core/workspace";
+import { IdentityProvider } from "@/identity";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -21,7 +21,7 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider>
       <FeatureFlagsProvider env={env}>
-        <AuthContextProvider>
+        <IdentityProvider>
           <PermissionProvider roleName={null}>
             <WorkspaceContextProvider workspace={null}>
               <NotificationProvider>
@@ -31,7 +31,7 @@ export function Providers({ children }: ProvidersProps) {
               </NotificationProvider>
             </WorkspaceContextProvider>
           </PermissionProvider>
-        </AuthContextProvider>
+        </IdentityProvider>
       </FeatureFlagsProvider>
     </ThemeProvider>
   );
