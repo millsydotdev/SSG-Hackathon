@@ -1,5 +1,8 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/identity";
 import { cn } from "@/lib/utils";
 
 interface TopNavProps {
@@ -8,6 +11,37 @@ interface TopNavProps {
 }
 
 export function TopNav({ className, title = "SSG-Hackathon" }: TopNavProps) {
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
+
+  async function handleSignOut() {
+    setMenuOpen(false);
+    await signOut();
+    router.replace("/");
+  }
+
+  const initials = user?.displayName
+    ? user.displayName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : (user?.username?.slice(0, 2).toUpperCase() ?? "SS");
+
   return (
     <header
       className={cn(
@@ -22,24 +56,42 @@ export function TopNav({ className, title = "SSG-Hackathon" }: TopNavProps) {
       </div>
 
       <div className="gap-md flex items-center">
-        <div className="relative hidden sm:block">
-          <span className="material-symbols-outlined left-sm text-on-surface-variant pointer-events-none absolute top-1/2 -translate-y-1/2 text-[16px]">
-            search
-          </span>
-          <input
-            type="text"
-            placeholder="Search..."
-            className="border-outline-variant pr-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/50 focus:border-primary focus:ring-primary w-48 rounded border bg-black py-[4px] pl-8 transition-all duration-300 focus:w-64 focus:ring-1 focus:outline-none"
-          />
-        </div>
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="border-surface-variant bg-surface-container-highest text-on-surface hover:border-primary flex h-8 w-8 items-center justify-center rounded border font-mono text-[10px] transition-colors"
+            aria-label="User menu"
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+          >
+            {initials}
+          </button>
 
-        <button
-          type="button"
-          className="border-surface-variant bg-surface-container-highest text-on-surface hover:border-primary flex h-8 w-8 items-center justify-center rounded border font-mono text-[10px] transition-colors"
-          aria-label="User menu"
-        >
-          JD
-        </button>
+          {menuOpen && (
+            <div
+              className="mt-xs border-outline-variant bg-surface-container-low p-xs absolute top-full right-0 z-50 min-w-[180px] rounded border shadow-lg"
+              role="menu"
+            >
+              <div className="border-outline-variant/30 px-md py-sm border-b">
+                <p className="text-body-sm text-on-surface font-medium">
+                  {user?.displayName ?? user?.username}
+                </p>
+                <p className="text-on-surface-variant font-mono text-[10px]">
+                  {user?.email}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={handleSignOut}
+                className="px-md py-sm text-body-sm text-error hover:bg-error-container/20 flex w-full items-center rounded transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

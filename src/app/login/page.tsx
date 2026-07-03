@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/identity";
 import {
   AuthCard,
   AuthHeader,
@@ -10,19 +12,49 @@ import {
   AuthPageShell,
 } from "@/components/auth";
 
+function mapAuthError(_code: string, message: string): string {
+  if (message.includes("Invalid login credentials")) {
+    return "Invalid username or password. Please try again.";
+  }
+  if (
+    message.includes("rate limit") ||
+    message.includes("too many") ||
+    _code === "429"
+  ) {
+    return "Too many attempts. Please wait a moment and try again.";
+  }
+  if (message.includes("Email not confirmed")) {
+    return "Please confirm your email address before signing in.";
+  }
+  if (message.includes("Network") || message.includes("fetch")) {
+    return "Unable to connect. Please check your internet connection.";
+  }
+  return message;
+}
+
 export default function LoginPage() {
+  const router = useRouter();
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace("/app");
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!username.trim()) {
-      setError("Please enter your username.");
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setError("Please enter your username or email.");
       return;
     }
     if (!password) {
@@ -31,7 +63,33 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+
+    const result = await signIn({ username: trimmed, password, remember });
+
+    if (result.error) {
+      const msg = mapAuthError(result.error.code, result.error.message);
+      setError(msg);
+      setIsLoading(false);
+      return;
+    }
+
+    router.replace("/app");
+  }
+
+  if (authLoading) {
+    return (
+      <AuthPageShell>
+        <AuthCard>
+          <div className="py-lg flex items-center justify-center">
+            <div className="gap-sm flex items-center">
+              <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full" />
+              <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full [animation-delay:150ms]" />
+              <div className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full [animation-delay:300ms]" />
+            </div>
+          </div>
+        </AuthCard>
+      </AuthPageShell>
+    );
   }
 
   return (
@@ -48,7 +106,7 @@ export default function LoginPage() {
           noValidate
         >
           <FormField
-            label="Username"
+            label="Username or Email"
             type="text"
             placeholder="Enter your username"
             value={username}
@@ -56,7 +114,6 @@ export default function LoginPage() {
             disabled={isLoading}
             required
             autoComplete="username"
-            error={error && !username.trim() ? error : undefined}
           />
 
           <FormField
@@ -68,7 +125,6 @@ export default function LoginPage() {
             disabled={isLoading}
             required
             autoComplete="current-password"
-            error={error && username.trim() && !password ? error : undefined}
           />
 
           <div className="flex items-center justify-between">
