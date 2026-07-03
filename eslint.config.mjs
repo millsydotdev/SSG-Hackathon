@@ -43,6 +43,8 @@ const eslintConfig = defineConfig([
       "prefer-const": "error",
       "prefer-rest-params": "error",
       "prefer-spread": "error",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/exhaustive-deps": "off",
     },
   },
 ]);

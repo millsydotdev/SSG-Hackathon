@@ -8,6 +8,7 @@ export interface NavItem {
 export const sidebarNav: NavItem[] = [
   { label: "Overview", href: "/app", icon: "dashboard" },
   { label: "Hackathons", href: "/app/hackathons", icon: "emoji_events" },
+  { label: "Team", href: "/app/team", icon: "group" },
   { label: "Tasks", href: "/tasks", icon: "assignment" },
   { label: "Ideas", href: "/ideas", icon: "lightbulb" },
   { label: "Research", href: "/research", icon: "science" },
