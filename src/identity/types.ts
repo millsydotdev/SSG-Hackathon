@@ -13,6 +13,7 @@ export interface IdentitySession {
   status: AuthStatus;
   accessToken: string | null;
   expiresAt: string | null;
+  providerToken: string | null;
 }
 
 export type SignInParams = {

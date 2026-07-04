@@ -53,8 +53,32 @@ export function createGitHubService() {
     return data ? mapConnectionRow(data as Record<string, unknown>) : null;
   }
 
+  async function getConnectionToken(hackathonId: string): Promise<string | null> {
+    const conn = await getConnection(hackathonId);
+    if (!conn) return null;
+    if (conn.authType === "pat") return conn.accessToken;
+    return null; // OAuth tokens come from session, not DB
+  }
+
   async function deleteConnection(id: string): Promise<void> {
     await client().from("github_connections").delete().eq("id", id) as never;
+  }
+
+  async function saveOAuthConnection(hackathonId: string, tokenOwner: string, scopes: string, userId: string): Promise<GitHubConnection> {
+    const { data } = await client()
+      .from("github_connections")
+      .insert({
+        hackathon_id: hackathonId,
+        auth_type: "oauth",
+        access_token: "", // OAuth tokens come from session, not stored
+        token_owner: tokenOwner,
+        scopes,
+        created_by: userId,
+      } as never)
+      .select()
+      .single() as never;
+
+    return data as unknown as GitHubConnection;
   }
 
   async function getRepositories(hackathonId: string): Promise<GitHubRepository[]> {
@@ -245,7 +269,7 @@ export function createGitHubService() {
   }
 
   return {
-    saveConnection, getConnection, deleteConnection,
+    saveConnection, saveOAuthConnection, getConnection, getConnectionToken, deleteConnection,
     getRepositories, saveRepository,
     validateToken, fetchUserRepos, fetchRepoData,
     fetchIssues, fetchPRs, fetchCommits, fetchBranches, fetchWorkflows, fetchReleases,

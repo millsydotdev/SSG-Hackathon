@@ -24,6 +24,8 @@ interface SessionStoreValue {
   signUp: (params: SignUpParams) => Promise<AuthResult>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  signInWithOAuth: (provider: string) => Promise<void>;
+  getGitHubToken: () => Promise<string | null>;
 }
 
 const EMPTY_SESSION: IdentitySession = {
@@ -31,6 +33,7 @@ const EMPTY_SESSION: IdentitySession = {
   status: "unauthenticated",
   accessToken: null,
   expiresAt: null,
+  providerToken: null,
 };
 
 const EMPTY_RESULT: AuthResult = {
@@ -46,6 +49,8 @@ const SessionStoreContext = createContext<SessionStoreValue>({
   signUp: () => Promise.resolve(EMPTY_RESULT),
   signOut: () => Promise.resolve(),
   refresh: () => Promise.resolve(),
+  signInWithOAuth: () => Promise.resolve(),
+  getGitHubToken: () => Promise.resolve(null),
 });
 
 export function SessionStoreProvider({
@@ -128,6 +133,16 @@ export function SessionStoreProvider({
     setSession(s);
   }, [authService]);
 
+  const signInWithOAuth = useCallback(async (provider: string) => {
+    if (!authService) return;
+    await authService.signInWithOAuth(provider);
+  }, [authService]);
+
+  const getGitHubToken = useCallback(() => {
+    if (!authService) return Promise.resolve(null);
+    return authService.getGitHubToken();
+  }, [authService]);
+
   return (
     <SessionStoreContext.Provider
       value={{
@@ -138,6 +153,8 @@ export function SessionStoreProvider({
         signUp,
         signOut,
         refresh,
+        signInWithOAuth,
+        getGitHubToken,
       }}
     >
       {children}

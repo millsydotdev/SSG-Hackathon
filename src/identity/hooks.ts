@@ -15,6 +15,8 @@ export function useAuth() {
     signUp: store.signUp,
     signOut: store.signOut,
     refresh: store.refresh,
+    signInWithOAuth: store.signInWithOAuth,
+    getGitHubToken: store.getGitHubToken,
   };
 }
 

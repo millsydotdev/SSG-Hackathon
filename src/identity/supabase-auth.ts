@@ -15,6 +15,7 @@ function mapSession(supabaseSession: unknown): IdentitySession {
     };
     access_token?: string;
     expires_at?: number;
+    provider_token?: string;
   } | null;
 
   if (!s?.user) {
@@ -23,6 +24,7 @@ function mapSession(supabaseSession: unknown): IdentitySession {
       status: "unauthenticated",
       accessToken: null,
       expiresAt: null,
+      providerToken: null,
     };
   }
 
@@ -46,6 +48,7 @@ function mapSession(supabaseSession: unknown): IdentitySession {
     expiresAt: s.expires_at
       ? new Date(s.expires_at * 1000).toISOString()
       : null,
+    providerToken: s.provider_token ?? null,
   };
 }
 
@@ -74,6 +77,7 @@ export async function createSupabaseAuthService(
             status: "unauthenticated",
             accessToken: null,
             expiresAt: null,
+            providerToken: null,
           },
           error: {
             code: error.status?.toString() ?? "unknown",
@@ -99,6 +103,7 @@ export async function createSupabaseAuthService(
             status: "unauthenticated",
             accessToken: null,
             expiresAt: null,
+            providerToken: null,
           },
           error: {
             code: error.status?.toString() ?? "unknown",
@@ -124,6 +129,20 @@ export async function createSupabaseAuthService(
     refreshSession: async () => {
       const { data } = await client.auth.refreshSession();
       return mapSession(data.session);
+    },
+
+    signInWithOAuth: async (provider: string) => {
+      await client.auth.signInWithOAuth({
+        provider: provider as "github",
+        options: {
+          redirectTo: `${window.location.origin}/app/integrations/github`,
+        },
+      });
+    },
+
+    getGitHubToken: async () => {
+      const { data } = await client.auth.getSession();
+      return data.session?.provider_token ?? null;
     },
 
     onAuthStateChange: (callback) => {

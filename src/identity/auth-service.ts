@@ -25,6 +25,12 @@ export interface AuthService {
   /** Refresh the session token */
   refreshSession: () => Promise<IdentitySession>;
 
+  /** Sign in with OAuth provider */
+  signInWithOAuth: (provider: string) => Promise<void>;
+
+  /** Get GitHub provider token from the current session */
+  getGitHubToken: () => Promise<string | null>;
+
   /** Listen for auth state changes */
   onAuthStateChange: (
     callback: (session: IdentitySession) => void,

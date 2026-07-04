@@ -9,7 +9,7 @@ type Section = "overview" | "repositories" | "issues" | "pulls" | "branches" | "
 
 export default function GitHubIntegrationPage() {
   const { activeHackathon } = useHackathon();
-  const { user } = useAuth();
+  const { user, session, signInWithOAuth, getGitHubToken } = useAuth();
   const [activeSection, setActiveSection] = useState<Section>("setup");
   const [connection, setConnection] = useState<GitHubConnection | null>(null);
   const [repos, setRepos] = useState<GitHubRepository[]>([]);
@@ -24,7 +24,7 @@ export default function GitHubIntegrationPage() {
   const [loading, setLoading] = useState(true);
 
   // Setup wizard state
-  const [authType, setAuthType] = useState<AuthType>("pat");
+  const [authType, setAuthType] = useState<AuthType>("oauth");
   const [token, setToken] = useState("");
   const [step, setStep] = useState(1);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -35,6 +35,7 @@ export default function GitHubIntegrationPage() {
   });
   const [syncing, setSyncing] = useState(false);
   const [setupGuideVisible, setSetupGuideVisible] = useState(false);
+  const [oauthAttempted, setOauthAttempted] = useState(false);
 
   const hackathonId = activeHackathon?.id;
   const gh = createGitHubService();
@@ -59,6 +60,29 @@ export default function GitHubIntegrationPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Check if returning from GitHub OAuth — retrieve provider_token
+  useEffect(() => {
+    if (!connection && session.providerToken && !oauthAttempted) {
+      setOauthAttempted(true);
+      setToken(session.providerToken);
+      setAuthType("oauth");
+      setValidation({
+        valid: true,
+        owner: session.user?.username ?? null,
+        repository: null,
+        scopes: [],
+        errors: [],
+      });
+      // Load repos with OAuth token
+      gh.fetchUserRepos(session.providerToken).then(setAvailableRepos).catch(() => {});
+      setStep(2);
+    }
+  }, [session, connection, oauthAttempted, gh]);
+
+  async function handleOAuthConnect() {
+    await signInWithOAuth("github");
+  }
+
   async function handleValidateToken() {
     if (!token.trim()) return;
     const result = await gh.validateToken(token.trim());
@@ -71,18 +95,32 @@ export default function GitHubIntegrationPage() {
   }
 
   async function handleConnect() {
-    if (!hackathonId || !user || !selectedFullName || !token.trim()) return;
-    if (!selectedFullName) return;
+    if (!hackathonId || !user || !selectedFullName) return;
     setSyncing(true);
-    const conn = await gh.saveConnection(hackathonId, authType, token.trim(), user.id);
+
+    let ghToken = token.trim();
+    let conn: GitHubConnection;
+
+    if (authType === "oauth") {
+      // OAuth: get token from session, store connection without token
+      ghToken = session.providerToken ?? "";
+      if (!ghToken) return;
+      conn = await gh.saveOAuthConnection(hackathonId, user.username ?? "", "repo,read:org,read:user", user.id);
+    } else {
+      // PAT: save connection with token
+      if (!ghToken) return;
+      conn = await gh.saveConnection(hackathonId, authType, ghToken, user.id);
+    }
+
     const parts = selectedFullName.split("/");
     const owner = parts[0] ?? "";
     const name = parts[1] ?? "";
-    const repoData = await gh.fetchRepoData(token.trim(), owner, name);
+    const repoData = await gh.fetchRepoData(ghToken, owner, name);
     await gh.saveRepository(conn.id, hackathonId, repoData);
     await gh.recordSync(conn.id, "initial_sync", "completed", 1);
     setConnection(conn);
     setSyncing(false);
+    await loadData();
     await loadData();
   }
 
@@ -90,31 +128,38 @@ export default function GitHubIntegrationPage() {
     if (!connection || !selectedRepo) return;
     setSyncing(true);
     const { owner, name } = selectedRepo;
-    const token = connection.accessToken;
+
+    let ghToken = connection.authType === "oauth" ? session.providerToken : connection.accessToken;
+    if (!ghToken) return;
+
+    if (connection.authType === "oauth") {
+      const freshToken = await getGitHubToken();
+      if (freshToken) ghToken = freshToken;
+    }
 
     try {
       await gh.recordSync(connection.id, "repo_metadata", "running");
 
       if (enabledFeatures.issues) {
-        const items = await gh.fetchIssues(token, owner, name);
+        const items = await gh.fetchIssues(ghToken, owner, name);
         setIssues(items);
       }
       if (enabledFeatures.pulls) {
-        const items = await gh.fetchPRs(token, owner, name);
+        const items = await gh.fetchPRs(ghToken, owner, name);
         setPulls(items);
       }
       if (enabledFeatures.commits) {
-        const items = await gh.fetchCommits(token, owner, name);
+        const items = await gh.fetchCommits(ghToken, owner, name);
         setCommits(items);
       }
-      const branchItems = await gh.fetchBranches(token, owner, name);
+      const branchItems = await gh.fetchBranches(ghToken, owner, name);
       setBranches(branchItems);
       if (enabledFeatures.actions) {
-        const items = await gh.fetchWorkflows(token, owner, name);
+        const items = await gh.fetchWorkflows(ghToken, owner, name);
         setWorkflows(items);
       }
       if (enabledFeatures.releases) {
-        const items = await gh.fetchReleases(token, owner, name);
+        const items = await gh.fetchReleases(ghToken, owner, name);
         setReleases(items);
       }
 
@@ -183,9 +228,16 @@ export default function GitHubIntegrationPage() {
       <div className="mb-lg flex items-center justify-between">
         <div>
           <h1 className="text-h1 font-semibold text-on-surface">GitHub Integration</h1>
-          <p className="text-body-sm text-on-surface-variant">
-            {connection ? `Connected · ${repos.length} repositor${repos.length === 1 ? "y" : "ies"}` : "Not configured"}
-          </p>
+          <div className="flex items-center gap-sm">
+            <p className="text-body-sm text-on-surface-variant">
+              {connection ? `Connected · ${repos.length} repositor${repos.length === 1 ? "y" : "ies"}` : "Not configured"}
+            </p>
+            {connection && (
+              <span className={`rounded px-[4px] py-[1px] font-mono text-[8px] font-medium ${connection.authType === "oauth" ? "bg-primary/10 text-primary" : "bg-surface-container-high text-on-surface-variant"}`}>
+                {connection.authType === "oauth" ? "OAuth" : "PAT"}
+              </span>
+            )}
+          </div>
         </div>
         {connection && (
           <button type="button" onClick={handleSync} disabled={syncing || !selectedRepo}
@@ -203,14 +255,9 @@ export default function GitHubIntegrationPage() {
             <div className="rounded border border-outline-variant/30 bg-surface-container p-lg">
               <h2 className="mb-md text-h3 font-semibold text-on-surface">Setup Guide</h2>
               <div className="mb-md flex flex-col gap-sm text-body-sm text-on-surface-variant">
-                <p>To connect GitHub, you need a <strong className="text-on-surface">Personal Access Token</strong> (classic) with these scopes:</p>
-                <ul className="list-inside list-disc font-mono text-[10px]">
-                  <li><code className="rounded bg-surface-container-high px-[4px]">repo</code> — Full access to private repositories</li>
-                  <li><code className="rounded bg-surface-container-high px-[4px]">read:org</code> — Access organisation repositories</li>
-                  <li><code className="rounded bg-surface-container-high px-[4px]">read:user</code> — Read user profile</li>
-                </ul>
-                <p className="mt-sm">Or use <strong className="text-on-surface">GitHub CLI</strong> for automatic authentication:</p>
-                <div className="rounded bg-surface-container-high p-sm font-mono text-[10px]">{'gh auth login --scopes "repo,read:org,read:user"'}</div>
+                <p>Connect your GitHub account to link repositories, track issues, pull requests, and more.</p>
+                <p className="mt-sm"><strong className="text-on-surface">GitHub OAuth</strong> is the recommended method — one click, no tokens needed.</p>
+                <p>For advanced use cases, <strong className="text-on-surface">Personal Access Tokens</strong> let you connect organisation repositories or use fine-grained permissions.</p>
               </div>
               <button type="button" onClick={() => setSetupGuideVisible(true)} className="rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">Start Setup</button>
             </div>
@@ -219,28 +266,46 @@ export default function GitHubIntegrationPage() {
               <h2 className="text-h3 font-semibold text-on-surface">Connect GitHub</h2>
 
               <div className="flex flex-col gap-sm">
-                <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 1: Authentication</p>
+                <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 1: Choose Authentication</p>
                 <div className="flex gap-sm">
-                  <button type="button" onClick={() => setAuthType("pat")} className={`flex-1 rounded border p-md text-center transition-colors ${authType === "pat" ? "border-primary bg-primary/10" : "border-outline-variant/30 hover:border-outline-variant/60"}`}>
+                  <button type="button" onClick={() => setAuthType("oauth")} className={`flex-1 rounded border p-md text-center transition-colors ${authType === "oauth" ? "border-primary bg-primary/10" : "border-outline-variant/30 hover:border-outline-variant/60"}`}>
                     <span className="material-symbols-outlined text-[24px] text-primary">key</span>
+                    <p className="mt-xs text-body-sm font-medium text-on-surface">GitHub OAuth</p>
+                    <p className="font-mono text-[8px] text-primary">Recommended</p>
+                  </button>
+                  <button type="button" onClick={() => setAuthType("pat")} className={`flex-1 rounded border p-md text-center transition-colors ${authType === "pat" ? "border-primary bg-primary/10" : "border-outline-variant/30 hover:border-outline-variant/60"}`}>
+                    <span className="material-symbols-outlined text-[24px] text-on-surface-variant">lock</span>
                     <p className="mt-xs text-body-sm font-medium text-on-surface">Personal Access Token</p>
+                    <p className="font-mono text-[8px] text-on-surface-variant">Advanced</p>
                   </button>
                 </div>
 
-                <label className="font-mono text-[9px] text-on-surface-variant">GitHub Token</label>
-                <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="ghp_xxxxxxxxxxxx" className="h-8 rounded border border-outline-variant/30 bg-black px-sm font-mono text-[10px] text-on-surface focus:border-primary focus:outline-none" aria-label="GitHub token" />
-                <button type="button" onClick={handleValidateToken} disabled={!token.trim()} className="self-start rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826] disabled:pointer-events-none disabled:opacity-50">Validate Token</button>
-
-                {validation && (
-                  <div className={`rounded p-sm font-mono text-[10px] ${validation.valid ? "bg-[#3fb950]/10 text-[#3fb950]" : "bg-error/10 text-error"}`}>
-                    {validation.valid ? `Valid — Authenticated as @${validation.owner}` : `Error: ${validation.errors.join(", ")}`}
+                {authType === "oauth" ? (
+                  <div className="flex flex-col gap-sm">
+                    <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 2: Authorise</p>
+                    <button type="button" onClick={handleOAuthConnect} className="self-start rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">
+                      Connect with GitHub
+                    </button>
+                    <p className="font-mono text-[9px] text-on-surface-variant">You&apos;ll be redirected to GitHub to authorise access.</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-sm">
+                    <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 2: Personal Access Token</p>
+                    <p className="font-mono text-[9px] text-on-surface-variant">Create a classic token at GitHub Settings &gt; Developer settings &gt; Personal access tokens with <code className="rounded bg-surface-container-high px-[4px]">repo</code> and <code className="rounded bg-surface-container-high px-[4px]">read:org</code> scopes.</p>
+                    <label className="font-mono text-[9px] text-on-surface-variant">GitHub Token</label>
+                    <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="ghp_xxxxxxxxxxxx" className="h-8 rounded border border-outline-variant/30 bg-black px-sm font-mono text-[10px] text-on-surface focus:border-primary focus:outline-none" aria-label="GitHub token" />
+                    <button type="button" onClick={handleValidateToken} disabled={!token.trim()} className="self-start rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826] disabled:pointer-events-none disabled:opacity-50">Validate Token</button>
+                    {validation && (
+                      <div className={`rounded p-sm font-mono text-[10px] ${validation.valid ? "bg-[#3fb950]/10 text-[#3fb950]" : "bg-error/10 text-error"}`}>
+                        {validation.valid ? `Valid — Authenticated as @${validation.owner}` : `Error: ${validation.errors.join(", ")}`}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
 
               {step >= 2 && validation?.valid && (
                 <div className="flex flex-col gap-sm">
-                  <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 2: Select Repository</p>
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">{authType === "oauth" ? "Step 2" : "Step 3"}: Select Repository</p>
                   <select value={selectedFullName} onChange={(e) => setSelectedFullName(e.target.value)} className="h-8 rounded border border-outline-variant/30 bg-black px-sm text-body-xs text-on-surface focus:border-primary focus:outline-none" aria-label="Select repository">
                     <option value="">Choose a repository...</option>
                     {availableRepos.map((r) => <option key={r.full_name} value={r.full_name}>{r.full_name}</option>)}
@@ -250,7 +315,7 @@ export default function GitHubIntegrationPage() {
 
               {step >= 2 && selectedFullName && (
                 <div className="flex flex-col gap-sm">
-                  <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">Step 3: Enabled Features</p>
+                  <p className="font-mono text-[9px] font-bold uppercase tracking-wider text-on-surface-variant">{authType === "oauth" ? "Step 3" : "Step 4"}: Enabled Features</p>
                   <div className="flex flex-wrap gap-sm">
                     {(["issues", "pulls", "actions", "releases", "commits"] as const).map((f) => (
                       <label key={f} className="flex items-center gap-xs cursor-pointer">
@@ -268,7 +333,8 @@ export default function GitHubIntegrationPage() {
                 </button>
               )}
             </div>
-          )}
+          </div>
+        )}
         </div>
       )}
 
