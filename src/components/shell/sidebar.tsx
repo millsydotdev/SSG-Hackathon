@@ -3,8 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { sidebarNav, secondaryNav } from "@/config/navigation";
+import { useAuth } from "@/identity";
+import { createAdminService } from "@/core/admin";
 
 interface SidebarProps {
   className?: string;
@@ -12,6 +15,13 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
+  const { user, isAuthenticated } = useAuth();
+  const [isOwner, setIsOwner] = useState(false);
+
+  useEffect(() => {
+    if (!user || !isAuthenticated) { setIsOwner(false); return; }
+    createAdminService().isPlatformOwner(user.id).then(setIsOwner).catch(() => setIsOwner(false));
+  }, [user, isAuthenticated]);
 
   function isActive(href: string) {
     if (href === "/app") return pathname === "/app";
@@ -67,7 +77,7 @@ export function Sidebar({ className }: SidebarProps) {
       </nav>
 
       <div className="border-t border-outline-variant px-xs py-sm">
-        {secondaryNav.map((item) => (
+        {secondaryNav.filter((item) => item.href === "/app/admin" ? isOwner : true).map((item) => (
           <Link
             key={item.href}
             href={item.href}

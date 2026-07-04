@@ -27,5 +27,6 @@ export const sidebarNav: NavItem[] = [
 ];
 
 export const secondaryNav: NavItem[] = [
+  { label: "Admin", href: "/app/admin", icon: "admin_panel_settings" },
   { label: "Settings", href: "/app/settings", icon: "settings" },
 ];

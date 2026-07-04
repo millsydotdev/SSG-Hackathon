@@ -11,6 +11,7 @@ import { createCommentService } from "@/core/comments";
 import { createReviewService } from "@/core/reviews";
 import { createIntegrationService } from "@/core/integrations";
 import { createAutomationService } from "@/core/automation";
+import { createAdminService } from "@/core/admin";
 import { useAuth } from "@/identity";
 
 export default function MissionControlPage() {
@@ -29,6 +30,7 @@ export default function MissionControlPage() {
   const [integrationErrors, setIntegrationErrors] = useState(0);
   const [autoRuleCount, setAutoRuleCount] = useState(0);
   const [autoFailedRuns, setAutoFailedRuns] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Live countdown
   useEffect(() => {
@@ -59,7 +61,8 @@ export default function MissionControlPage() {
       createIntegrationService().getConnections(activeHackathon.id),
       createAutomationService().listRules(activeHackathon.id),
       createAutomationService().getRecentRuns(activeHackathon.id),
-    ]).then(([d, a, h, as_, al, reviews, mentions, integrations, autoRules, autoRuns]) => {
+      user ? createAdminService().isPlatformOwner(user.id) : Promise.resolve(false),
+    ]).then(([d, a, h, as_, al, reviews, mentions, integrations, autoRules, autoRuns, owner]) => {
       setData(d); setActivity(a); setHealth(h);
       setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
       setRecentArchive(al[0] ?? null);
@@ -69,6 +72,7 @@ export default function MissionControlPage() {
       setIntegrationErrors(integrations.filter((c: { status: string }) => c.status === "error").length);
       setAutoRuleCount(autoRules.filter((r: { enabled: boolean }) => r.enabled).length);
       setAutoFailedRuns(autoRuns.filter((r: { status: string }) => r.status === "failed").length);
+      setIsOwner(owner as boolean);
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon, user]);
 
@@ -296,6 +300,26 @@ export default function MissionControlPage() {
                     </div>
                     <div className="mt-md">
                       <Link href="/app/automation" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Automation →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Platform Health (owner only) */}
+                {isOwner && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Platform Health</h2>
+                    <div className="flex items-center justify-around">
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{data?.overall.pct ?? 0}%</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">health score</p>
+                      </div>
+                      <div className="text-center">
+                        <Link href="/app/admin" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">Open Admin →</Link>
+                      </div>
+                    </div>
+                    <div className="mt-md flex items-center gap-md font-mono text-[9px] text-on-surface-variant">
+                      <span>{integrationErrors > 0 ? `${integrationErrors} integration error(s)` : "Integrations OK"}</span>
+                      <span>{autoFailedRuns > 0 ? `${autoFailedRuns} failed automation(s)` : "Automation OK"}</span>
                     </div>
                   </div>
                 )}
