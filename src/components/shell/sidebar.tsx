@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { sidebarNav, secondaryNav } from "@/config/navigation";
+import { navSections, secondaryNav } from "@/config/navigation";
 
 interface SidebarProps {
   className?: string;
@@ -12,55 +12,73 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
 
+  function isActive(href: string) {
+    if (href === "/app") return pathname === "/app";
+    return pathname.startsWith(href);
+  }
+
   return (
     <aside
       className={cn(
-        "border-outline-variant bg-surface-container-low flex h-full w-60 shrink-0 flex-col border-r",
+        "flex h-full w-60 shrink-0 flex-col border-r border-outline-variant bg-surface-container-low",
         className,
       )}
     >
-      <div className="gap-xs border-outline-variant px-md pb-lg pt-md flex flex-col border-b">
-        <h2 className="text-h2 text-on-surface font-semibold">SSG-Hackathon</h2>
-        <p className="text-on-surface-variant font-mono text-[11px]">
+      <div className="flex flex-col gap-xs border-b border-outline-variant px-md pb-lg pt-md">
+        <h2 className="text-h2 font-semibold text-on-surface">
+          SSG-Hackathon
+        </h2>
+        <p className="font-mono text-[11px] text-on-surface-variant">
           Private Workstation
         </p>
       </div>
 
-      <nav className="px-xs py-sm flex flex-1 scrollbar-thin flex-col gap-[2px] overflow-y-auto">
-        {sidebarNav.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "gap-md px-md py-sm text-body-sm flex items-center rounded transition-all duration-150",
-                "border-l-2",
-                isActive
-                  ? "border-l-primary bg-surface-container-high text-on-surface font-semibold"
-                  : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface border-l-transparent",
-              )}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {item.icon}
-              </span>
-              <span>{item.label}</span>
-              {item.badge && (
-                <span className="bg-surface-container-highest px-xs text-on-surface-variant ml-auto rounded py-[1px] font-mono text-[10px]">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex flex-1 flex-col overflow-y-auto px-xs py-sm scrollbar-thin">
+        {navSections.map((section) => (
+          <div key={section.label} className="mb-md">
+            <p className="mb-xs px-md font-mono text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
+              {section.label}
+            </p>
+            {section.items.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-md rounded px-md py-sm text-body-sm transition-all duration-150",
+                    "border-l-2",
+                    active
+                      ? "border-l-primary bg-surface-container-high font-semibold text-on-surface"
+                      : "border-l-transparent text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface",
+                  )}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="ml-auto rounded bg-surface-container-highest px-xs py-[1px] font-mono text-[10px] text-on-surface-variant">
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="border-outline-variant px-xs py-sm border-t">
+      <div className="border-t border-outline-variant px-xs py-sm">
         {secondaryNav.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="gap-md px-md py-sm text-body-sm text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface flex items-center rounded transition-colors"
+            className={cn(
+              "flex items-center gap-md rounded px-md py-sm text-body-sm transition-all duration-150",
+              "border-l-2 border-l-transparent text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface",
+              isActive(item.href) && "border-l-primary bg-surface-container-high font-semibold text-on-surface",
+            )}
           >
             <span className="material-symbols-outlined text-[18px]">
               {item.icon}
@@ -70,14 +88,14 @@ export function Sidebar({ className }: SidebarProps) {
         ))}
       </div>
 
-      <div className="border-outline-variant px-md py-md border-t">
-        <button
-          type="button"
-          className="gap-xs bg-primary px-md py-sm text-body-sm text-on-primary inline-flex w-full items-center justify-center rounded font-medium transition-colors hover:bg-[#c01826]"
+      <div className="border-t border-outline-variant px-md py-md">
+        <Link
+          href="/app/workspace/new"
+          className="inline-flex w-full items-center justify-center gap-xs rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]"
         >
-          <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-          Active Event
-        </button>
+          <span className="material-symbols-outlined text-[16px]">add</span>
+          New Workspace
+        </Link>
       </div>
     </aside>
   );

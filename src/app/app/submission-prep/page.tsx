@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useHackathon } from "@/core/hackathon";
 import { createSubmissionService, type Submission, type SubmissionDeliverable, type SubmissionChecklistItem } from "@/core/submission";
 
-export default function SubmissionPage() {
+export default function SubmissionPrepPage() {
   const router = useRouter();
   const { activeHackathon } = useHackathon();
   const [submission, setSubmission] = useState<(Submission & { deliverables: SubmissionDeliverable[]; checklist: SubmissionChecklistItem[] }) | null>(null);
@@ -100,10 +100,16 @@ export default function SubmissionPage() {
       <div className="mx-auto flex max-w-[1200px] flex-col gap-lg">
         <div className="flex items-end justify-between">
           <div>
-            <h1 className="text-h1 font-semibold text-on-surface">Submission</h1>
-            <p className="font-mono text-[11px] text-on-surface-variant">{timeLeft ? `Deadline: ${timeLeft}` : "No deadline set"}</p>
+          <h1 className="text-h1 font-semibold text-on-surface">Submission Prep</h1>
+            <p className="font-mono text-[11px] text-on-surface-variant">Prepare your materials for external submission{timeLeft ? ` · ${timeLeft}` : ""}</p>
           </div>
-          {!submission && (
+        <div className="rounded border border-outline-variant/30 bg-surface-container-low px-lg py-sm">
+          <p className="font-mono text-[10px] text-on-surface-variant">
+            SSG-Hackathon prepares your submission materials. The final submission is made on the hackathon organiser&apos;s platform.
+          </p>
+        </div>
+
+        {!submission && (
             <button type="button" onClick={handleCreate}
               className="inline-flex items-center gap-sm rounded bg-primary px-md py-sm text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">
               <span className="material-symbols-outlined text-[16px]">add</span>Create Submission

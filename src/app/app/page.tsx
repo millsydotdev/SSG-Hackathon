@@ -77,7 +77,7 @@ export default function MissionControlPage() {
               <div className="flex items-center gap-sm">
                 <Link href="/app/planning" className="rounded border border-outline-variant bg-black px-sm py-xs text-body-sm text-on-surface transition-colors hover:border-on-surface">Planning</Link>
                 <Link href="/app/tasks" className="rounded border border-outline-variant bg-black px-sm py-xs text-body-sm text-on-surface transition-colors hover:border-on-surface">Tasks</Link>
-                <Link href="/app/submission" className="rounded bg-primary px-sm py-xs text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">Submission</Link>
+                <Link href="/app/submission-prep" className="rounded bg-primary px-sm py-xs text-body-sm font-medium text-on-primary transition-colors hover:bg-[#c01826]">Submission</Link>
               </div>
             </div>
 
@@ -105,7 +105,7 @@ export default function MissionControlPage() {
                       <p className={`mt-xs text-[48px] font-bold leading-none tracking-tight ${subReadinessColor}`}>{subPct}%</p>
                       <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{subReadinessLabel}</p>
                     </div>
-                    <Link href="/app/submission" className="rounded border border-outline-variant bg-black px-md py-sm text-body-sm text-on-surface transition-colors hover:border-on-surface">Open Submission</Link>
+                    <Link href="/app/submission-prep" className="rounded border border-outline-variant bg-black px-md py-sm text-body-sm text-on-surface transition-colors hover:border-on-surface">Submission Prep</Link>
                   </div>
                 </div>
 
@@ -189,7 +189,7 @@ export default function MissionControlPage() {
                     <QuickAction href="/app/files" icon="upload" label="Upload File" />
                     <QuickAction href="/app/research" icon="travel_explore" label="Add Research" />
                     <QuickAction href="/app/team/invitations" icon="group" label="Invite Member" />
-                    <QuickAction href="/app/submission" icon="task_alt" label="Open Submission" />
+                    <QuickAction href="/app/submission-prep" icon="task_alt" label="Submission Prep" />
                     <QuickAction href="/app/planning" icon="map" label="View Planning" />
                   </div>
                 </div>
