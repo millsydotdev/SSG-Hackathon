@@ -18,6 +18,7 @@ export const sidebarNav: NavItem[] = [
   { label: "Files", href: "/app/files", icon: "folder" },
   { label: "Relationships", href: "/app/relationships", icon: "hub" },
   { label: "Analytics", href: "/app/analytics", icon: "insights" },
+  { label: "Automation", href: "/app/automation", icon: "auto_awesome" },
   { label: "Team", href: "/app/team", icon: "group" },
   { label: "Submission Prep", href: "/app/submission-prep", icon: "task_alt" },
   { label: "Hackathons", href: "/app/hackathons", icon: "emoji_events" },

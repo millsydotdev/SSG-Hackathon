@@ -10,6 +10,7 @@ import { createArchiveService, type WorkspaceArchive } from "@/core/archive";
 import { createCommentService } from "@/core/comments";
 import { createReviewService } from "@/core/reviews";
 import { createIntegrationService } from "@/core/integrations";
+import { createAutomationService } from "@/core/automation";
 import { useAuth } from "@/identity";
 
 export default function MissionControlPage() {
@@ -26,6 +27,8 @@ export default function MissionControlPage() {
   const [unreadMentionCount, setUnreadMentionCount] = useState(0);
   const [integrationCount, setIntegrationCount] = useState(0);
   const [integrationErrors, setIntegrationErrors] = useState(0);
+  const [autoRuleCount, setAutoRuleCount] = useState(0);
+  const [autoFailedRuns, setAutoFailedRuns] = useState(0);
 
   // Live countdown
   useEffect(() => {
@@ -54,14 +57,18 @@ export default function MissionControlPage() {
       user ? createReviewService().getPendingReviews(user.id) : Promise.resolve([]),
       user ? createCommentService().getUnreadMentionCount(user.id) : Promise.resolve(0),
       createIntegrationService().getConnections(activeHackathon.id),
-    ]).then(([d, a, h, as_, al, reviews, mentions, integrations]) => {
+      createAutomationService().listRules(activeHackathon.id),
+      createAutomationService().getRecentRuns(activeHackathon.id),
+    ]).then(([d, a, h, as_, al, reviews, mentions, integrations, autoRules, autoRuns]) => {
       setData(d); setActivity(a); setHealth(h);
       setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
       setRecentArchive(al[0] ?? null);
       setPendingReviewCount(reviews.length);
       setUnreadMentionCount(mentions as number);
       setIntegrationCount(integrations.length);
-      setIntegrationErrors(integrations.filter((c) => c.status === "error").length);
+      setIntegrationErrors(integrations.filter((c: { status: string }) => c.status === "error").length);
+      setAutoRuleCount(autoRules.filter((r: { enabled: boolean }) => r.enabled).length);
+      setAutoFailedRuns(autoRuns.filter((r: { status: string }) => r.status === "failed").length);
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon, user]);
 
@@ -269,6 +276,26 @@ export default function MissionControlPage() {
                     </div>
                     <div className="mt-md">
                       <Link href="/app/integrations" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Integrations →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Automation */}
+                {autoRuleCount > 0 && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Automation</h2>
+                    <div className="flex items-center justify-around">
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{autoRuleCount}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">active rules</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-[24px] font-bold leading-none ${autoFailedRuns > 0 ? "text-error" : "text-on-surface"}`}>{autoFailedRuns}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">failed</p>
+                      </div>
+                    </div>
+                    <div className="mt-md">
+                      <Link href="/app/automation" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Automation →</Link>
                     </div>
                   </div>
                 )}

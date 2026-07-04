@@ -16,7 +16,7 @@ import {
 export default function JoinPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signUp } = useAuth();
+  const { signUp, signInWithOAuth, session } = useAuth();
   const validatedRef = useRef(false);
 
   const [inviteCode, setInviteCode] = useState("");
@@ -30,6 +30,35 @@ export default function JoinPage() {
   const [error, setError] = useState("");
   const [inviteValid, setInviteValid] = useState<boolean | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [gitHubConnected, setGitHubConnected] = useState("");
+  const [oauthRestored, setOauthRestored] = useState(false);
+
+  // Restore form state from sessionStorage after OAuth redirect
+  useEffect(() => {
+    if (oauthRestored) return;
+    const saved = sessionStorage.getItem("join_form");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setInviteCode(data.inviteCode ?? "");
+        setDisplayName(data.displayName ?? "");
+        setUsername(data.username ?? "");
+        setEmail(data.email ?? "");
+        setPassword(data.password ?? "");
+        setConfirmPassword(data.confirmPassword ?? "");
+        setGitHubConnected(data.gitHubConnected ?? "");
+      } catch { /* ignore */ }
+      sessionStorage.removeItem("join_form");
+    }
+    setOauthRestored(true);
+  }, [oauthRestored]);
+
+  // Check if returning from GitHub OAuth
+  useEffect(() => {
+    if (session.providerToken && !gitHubConnected) {
+      setGitHubConnected(session.user?.username ?? "Connected");
+    }
+  }, [session.providerToken, gitHubConnected]);
 
   useEffect(() => {
     if (validatedRef.current) return;
@@ -56,6 +85,13 @@ export default function JoinPage() {
       })
       .finally(() => setIsValidating(false));
   }, []);
+
+  async function handleGitHubConnect() {
+    sessionStorage.setItem("join_form", JSON.stringify({
+      inviteCode, displayName, username, email, password, confirmPassword, gitHubConnected,
+    }));
+    await signInWithOAuth("github");
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -213,6 +249,30 @@ export default function JoinPage() {
               required
               autoComplete="new-password"
             />
+
+            {/* GitHub OAuth */}
+            <div className="flex items-center justify-between rounded border border-outline-variant/20 bg-surface-container-lowest p-sm">
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-[16px] text-on-surface-variant">code</span>
+                <div>
+                  <p className="text-body-sm text-on-surface">GitHub</p>
+                  <p className="font-mono text-[9px] text-on-surface-variant">
+                    {gitHubConnected ? `Connected as ${gitHubConnected}` : "Not connected (optional)"}
+                  </p>
+                </div>
+              </div>
+              {gitHubConnected ? (
+                <span className="flex items-center gap-xs font-mono text-[9px] text-[#3fb950]">
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                  Connected
+                </span>
+              ) : (
+                <button type="button" onClick={handleGitHubConnect} disabled={isLoading}
+                  className="rounded bg-surface-container-high px-sm py-xs text-body-xs text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-50">
+                  Connect GitHub
+                </button>
+              )}
+            </div>
 
             {error && (
               <p
