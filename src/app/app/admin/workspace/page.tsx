@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createAdminService } from "@/core/admin";
-import { useAuth } from "@/identity";
 import { AdminCard } from "@/components/admin/admin-card";
 
 export default function AdminWorkspacePage() {
-  const { user } = useAuth();
   const [dashboard, setDashboard] = useState<{ activeHackathon: string | null; activeHackathonId: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,17 +28,6 @@ export default function AdminWorkspacePage() {
     );
   }
 
-  async function handleArchive() {
-    if (!dashboard?.activeHackathonId || !user) return;
-    if (!confirm("Archive this workspace? This action cannot be undone.")) return;
-    try {
-      await createAdminService().log(user.id, "archive_workspace", "workspace", { hackathonId: dashboard.activeHackathonId });
-      alert("Archive request recorded. Full archive implementation coming soon.");
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Archive failed.");
-    }
-  }
-
   return (
     <div className="mx-auto max-w-2xl p-lg">
       <h1 className="mb-lg text-h1 font-semibold text-on-surface">Active Workspace</h1>
@@ -56,12 +44,16 @@ export default function AdminWorkspacePage() {
           <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
             <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Quick Actions</h2>
             <div className="flex flex-col gap-sm">
-              <button type="button" onClick={handleArchive}
-                className="flex items-center gap-sm rounded bg-error/10 px-md py-sm text-body-sm text-error transition-colors hover:bg-error/20">
-                <span className="material-symbols-outlined text-[16px]">archive</span>
-                Archive Workspace
-              </button>
-              <p className="font-mono text-[9px] text-on-surface-variant/60">Clone and Switch coming soon.</p>
+              <Link href={`/app/planning`}
+                className="flex items-center gap-sm rounded bg-surface-container px-md py-sm text-body-sm text-on-surface transition-colors hover:bg-surface-container-high">
+                <span className="material-symbols-outlined text-[16px]">map</span>
+                Open Planning
+              </Link>
+              <Link href={`/app/submission-prep`}
+                className="flex items-center gap-sm rounded bg-surface-container px-md py-sm text-body-sm text-on-surface transition-colors hover:bg-surface-container-high">
+                <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                Submission Prep
+              </Link>
             </div>
           </div>
         </>
