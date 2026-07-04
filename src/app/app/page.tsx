@@ -9,6 +9,7 @@ import { createAnalyticsService, type WorkspaceHealth } from "@/core/analytics";
 import { createArchiveService, type WorkspaceArchive } from "@/core/archive";
 import { createCommentService } from "@/core/comments";
 import { createReviewService } from "@/core/reviews";
+import { createGitHubService } from "@/core/github";
 import { useAuth } from "@/identity";
 
 export default function MissionControlPage() {
@@ -23,6 +24,9 @@ export default function MissionControlPage() {
   const [recentArchive, setRecentArchive] = useState<WorkspaceArchive | null>(null);
   const [pendingReviewCount, setPendingReviewCount] = useState(0);
   const [unreadMentionCount, setUnreadMentionCount] = useState(0);
+  const [gitHubOpenIssues, setGitHubOpenIssues] = useState(0);
+  const [gitHubOpenPRs, setGitHubOpenPRs] = useState(0);
+  const [gitHubConnected, setGitHubConnected] = useState(false);
 
   // Live countdown
   useEffect(() => {
@@ -50,12 +54,16 @@ export default function MissionControlPage() {
       createArchiveService().list({ status: "completed" }),
       user ? createReviewService().getPendingReviews(user.id) : Promise.resolve([]),
       user ? createCommentService().getUnreadMentionCount(user.id) : Promise.resolve(0),
-    ]).then(([d, a, h, as_, al, reviews, mentions]) => {
+      createGitHubService().getRepositories(activeHackathon.id),
+    ]).then(([d, a, h, as_, al, reviews, mentions, ghRepos]) => {
       setData(d); setActivity(a); setHealth(h);
       setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
       setRecentArchive(al[0] ?? null);
       setPendingReviewCount(reviews.length);
       setUnreadMentionCount(mentions as number);
+      setGitHubConnected(ghRepos.length > 0);
+      setGitHubOpenIssues(ghRepos.reduce((sum: number, r) => sum + (r.openIssuesCount ?? 0), 0));
+      setGitHubOpenPRs(0);
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon, user]);
 
@@ -243,6 +251,26 @@ export default function MissionControlPage() {
                     </div>
                     <div className="mt-md">
                       <Link href="/app/analytics" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Analytics →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* GitHub Status */}
+                {gitHubConnected && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">GitHub</h2>
+                    <div className="flex items-center justify-around">
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{gitHubOpenIssues}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">open issues</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{gitHubOpenPRs}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">open PRs</p>
+                      </div>
+                    </div>
+                    <div className="mt-md">
+                      <Link href="/app/integrations/github" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View GitHub →</Link>
                     </div>
                   </div>
                 )}
