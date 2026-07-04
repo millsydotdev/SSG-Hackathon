@@ -7,9 +7,13 @@ import { loadMissionControl, type MissionControlData } from "@/core/mission-cont
 import { createActivityService, MODULE_ICONS, type ActivityEvent } from "@/core/activity";
 import { createAnalyticsService, type WorkspaceHealth } from "@/core/analytics";
 import { createArchiveService, type WorkspaceArchive } from "@/core/archive";
+import { createCommentService } from "@/core/comments";
+import { createReviewService } from "@/core/reviews";
+import { useAuth } from "@/identity";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
+  const { user } = useAuth();
   const [data, setData] = useState<MissionControlData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState("");
@@ -17,6 +21,8 @@ export default function MissionControlPage() {
   const [health, setHealth] = useState<WorkspaceHealth | null>(null);
   const [archiveStats, setArchiveStats] = useState<{ totalArchived: number; wins: number; totalLessons: number } | null>(null);
   const [recentArchive, setRecentArchive] = useState<WorkspaceArchive | null>(null);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [unreadMentionCount, setUnreadMentionCount] = useState(0);
 
   // Live countdown
   useEffect(() => {
@@ -42,12 +48,16 @@ export default function MissionControlPage() {
       createAnalyticsService().health(activeHackathon.id),
       createArchiveService().stats(),
       createArchiveService().list({ status: "completed" }),
-    ]).then(([d, a, h, as_, al]) => {
+      user ? createReviewService().getPendingReviews(user.id) : Promise.resolve([]),
+      user ? createCommentService().getUnreadMentionCount(user.id) : Promise.resolve(0),
+    ]).then(([d, a, h, as_, al, reviews, mentions]) => {
       setData(d); setActivity(a); setHealth(h);
       setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
       setRecentArchive(al[0] ?? null);
+      setPendingReviewCount(reviews.length);
+      setUnreadMentionCount(mentions as number);
     }).catch(() => {}).finally(() => setIsLoading(false));
-  }, [activeHackathon]);
+  }, [activeHackathon, user]);
 
   // Determine submission readiness
   const subPct = data ? (data.deliverables.total > 0 ? Math.round((data.deliverables.complete / data.deliverables.total) * 100) : 0) : 0;
@@ -236,6 +246,24 @@ export default function MissionControlPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Collaboration Summary */}
+                <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                  <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Collaboration</h2>
+                  <div className="flex items-center justify-around">
+                    <div className="text-center">
+                      <p className={`text-[24px] font-bold leading-none ${pendingReviewCount > 0 ? "text-primary" : "text-on-surface"}`}>{pendingReviewCount}</p>
+                      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">pending reviews</p>
+                    </div>
+                    <div className="text-center">
+                      <p className={`text-[24px] font-bold leading-none ${unreadMentionCount > 0 ? "text-[#d29922]" : "text-on-surface"}`}>{unreadMentionCount}</p>
+                      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">mentions</p>
+                    </div>
+                  </div>
+                  <div className="mt-sm flex flex-col gap-xs">
+                    <Link href="/app/me" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">My Workspace →</Link>
+                  </div>
+                </div>
 
                 {/* Archive Summary */}
                 {archiveStats && (

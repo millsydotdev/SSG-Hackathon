@@ -6,17 +6,23 @@ import { useAuth } from "@/identity";
 import { useHackathon } from "@/core/hackathon";
 import { createTaskService, type Task } from "@/core/tasks";
 import { createNotificationService, NOTIFICATION_LABELS } from "@/core/notifications";
+import { createCommentService, type Mention } from "@/core/comments";
+import { createReviewService, type Review } from "@/core/reviews";
 
 export default function MyDashboardPage() {
   const { user } = useAuth();
   const { activeHackathon } = useHackathon();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notifications, setNotifications] = useState<{ id: string; title: string; type: string; createdAt: string }[]>([]);
+  const [mentions, setMentions] = useState<Mention[]>([]);
+  const [pendingReviews, setPendingReviews] = useState<Review[]>([]);
 
   useEffect(() => {
     if (!activeHackathon || !user) return;
     createTaskService().list(activeHackathon.id).then(setTasks).catch(() => {});
     createNotificationService().list(user.id).then((n) => setNotifications(n.slice(0, 10))).catch(() => {});
+    createCommentService().getMentions(user.id).then(setMentions).catch(() => {});
+    createReviewService().getPendingReviews(user.id).then(setPendingReviews).catch(() => {});
   }, [activeHackathon, user]);
 
   const myTasks = tasks.filter((t) => t.owner === user?.username || t.assignees?.includes(user?.username ?? ""));
@@ -34,6 +40,53 @@ export default function MyDashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-lg md:grid-cols-2">
+          {/* Mentions */}
+          {mentions.length > 0 && (
+            <div className="rounded border border-[#d29922]/30 bg-[#d29922]/5 p-lg">
+              <div className="flex items-center justify-between">
+                <h2 className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#d29922]">
+                  Mentions ({mentions.filter((m) => !m.read).length} unread)
+                </h2>
+                <Link href="/app/notifications" className="font-mono text-[9px] text-primary">View all</Link>
+              </div>
+              <div className="mt-md flex flex-col gap-xs">
+                {mentions.slice(0, 5).map((m) => (
+                  <div key={m.id} className="flex items-center gap-sm rounded bg-surface-container-lowest px-md py-sm">
+                    <span className="material-symbols-outlined text-[14px] text-[#d29922]">alternate_email</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-body-sm text-on-surface truncate">@{m.mentionedUsername} mentioned you</p>
+                      <p className="font-mono text-[9px] text-on-surface-variant">{new Date(m.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    {!m.read && <span className="h-2 w-2 rounded-full bg-[#d29922]" />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Pending Reviews */}
+          {pendingReviews.length > 0 && (
+            <div className="rounded border border-primary/30 bg-primary/5 p-lg">
+              <div className="flex items-center justify-between">
+                <h2 className="font-mono text-[10px] font-bold uppercase tracking-widest text-primary">
+                  Pending Reviews ({pendingReviews.length})
+                </h2>
+                <Link href="/app/tasks" className="font-mono text-[9px] text-primary">View all</Link>
+              </div>
+              <div className="mt-md flex flex-col gap-xs">
+                {pendingReviews.slice(0, 5).map((r) => (
+                  <div key={r.id} className="flex items-center gap-sm rounded bg-surface-container-lowest px-md py-sm">
+                    <span className="material-symbols-outlined text-[14px] text-primary">rate_review</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-body-sm text-on-surface truncate">{r.title}</p>
+                      <p className="font-mono text-[9px] text-on-surface-variant">{r.module} · {new Date(r.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* My Tasks */}
           <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
             <div className="flex items-center justify-between">
