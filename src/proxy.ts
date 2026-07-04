@@ -9,12 +9,15 @@ const publicPaths = [
   "/terms",
   "/status",
   "/setup",
-  "/api/health",
-  "/api/validate-setup-key",
 ];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Never intercept API routes
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
 
   const isPublic = publicPaths.some(
     (path) => pathname === path || pathname.startsWith(path + "/"),
