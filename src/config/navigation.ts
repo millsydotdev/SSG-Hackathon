@@ -7,34 +7,36 @@ export interface NavItem {
 
 export const navSections: { label: string; items: NavItem[] }[] = [
   {
-    label: "Workspace",
+    label: "Home",
     items: [
       { label: "Mission Control", href: "/app", icon: "dashboard" },
+      { label: "My Workspace", href: "/app/me", icon: "person" },
+      { label: "Notifications", href: "/app/notifications", icon: "notifications" },
+    ],
+  },
+  {
+    label: "Plan & Build",
+    items: [
+      { label: "Discover", href: "/app/discover", icon: "travel_explore" },
       { label: "Planning", href: "/app/planning", icon: "map" },
       { label: "Ideas", href: "/app/ideas", icon: "lightbulb" },
       { label: "Research", href: "/app/research", icon: "science" },
       { label: "Tasks", href: "/app/tasks", icon: "checklist" },
-    ],
-  },
-  {
-    label: "Knowledge",
-    items: [
       { label: "Notes", href: "/app/notes", icon: "note" },
       { label: "Files", href: "/app/files", icon: "folder" },
       { label: "Relationships", href: "/app/relationships", icon: "hub" },
     ],
   },
   {
-    label: "People & Output",
+    label: "Team & Output",
     items: [
       { label: "Team", href: "/app/team", icon: "group" },
       { label: "Submission Prep", href: "/app/submission-prep", icon: "task_alt" },
     ],
   },
   {
-    label: "Discovery",
+    label: "History",
     items: [
-      { label: "Discover", href: "/app/discover", icon: "travel_explore" },
       { label: "Hackathons", href: "/app/hackathons", icon: "emoji_events" },
     ],
   },
