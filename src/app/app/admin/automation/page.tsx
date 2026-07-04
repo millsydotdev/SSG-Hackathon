@@ -11,7 +11,7 @@ export default function AdminAutomationPage() {
   useEffect(() => {
     createAdminService().getDashboard()
       .then((d) => setDashboard(d))
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,9 +35,9 @@ export default function AdminAutomationPage() {
 
         <div className="mb-lg grid grid-cols-1 gap-md sm:grid-cols-4">
           <AdminCard label="Rules" value={dashboard?.automationRules ?? 0} icon="auto_awesome" />
-          <AdminCard label="Total Runs" value={0} icon="play_arrow" />
+          <AdminCard label="Total Runs" value={dashboard?.automationRunCount ?? 0} icon="play_arrow" />
           <AdminCard label="Failed Runs" value={failed} icon="error" color={failed > 0 ? "text-error" : "text-[#3fb950]"} />
-          <AdminCard label="Disabled Rules" value={0} icon="toggle_off" />
+          <AdminCard label="Disabled Rules" value={dashboard?.automationDisabled ?? 0} icon="toggle_off" />
         </div>
 
         <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">

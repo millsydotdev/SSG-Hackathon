@@ -74,7 +74,7 @@ export default function GitHubIntegrationPage() {
         errors: [],
       });
       // Load repos with OAuth token
-      gh.fetchUserRepos(session.providerToken).then(setAvailableRepos).catch(() => {});
+      gh.fetchUserRepos(session.providerToken).then(setAvailableRepos).catch((err) => console.error("[Page] error:", err));
       setStep(2);
     }
   }, [session, connection, oauthAttempted, gh]);

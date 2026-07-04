@@ -61,7 +61,7 @@ export default function InvitationsPage() {
     service
       .list(activeHackathon.id)
       .then(setInvitations)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setIsLoading(false));
   }, [activeHackathon, loadKey]);
 

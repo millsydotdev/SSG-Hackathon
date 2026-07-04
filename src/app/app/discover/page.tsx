@@ -17,7 +17,7 @@ export default function DiscoverPage() {
   useEffect(() => {
     Promise.all([svc.list(), svc.getPipeline("current-user").catch(() => [])])
       .then(([e, p]) => { setEvents(e); setPipeline(p); })
-      .catch(() => {}).finally(() => setIsLoading(false));
+      .catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, []);
 
   async function handlePipeline(eventId: string, status: string) {

@@ -37,7 +37,7 @@ export default function FilesPage() {
     Promise.all([
       svc.listFiles(activeHackathon.id, currentFolder, showArchived),
       svc.listFolders(activeHackathon.id, currentFolder),
-    ]).then(([f, d]) => { setFiles(f); setFolders(d); }).catch(() => {}).finally(() => setIsLoading(false));
+    ]).then(([f, d]) => { setFiles(f); setFolders(d); }).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }
 
   useEffect(() => { if (activeHackathon) load(); }, [activeHackathon, currentFolder, showArchived]);

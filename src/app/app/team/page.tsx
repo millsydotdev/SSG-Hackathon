@@ -21,7 +21,7 @@ export default function TeamPage() {
     createProfileService()
       .listByHackathon(activeHackathon.id)
       .then(setMembers)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setIsLoading(false));
   }, [activeHackathon]);
 

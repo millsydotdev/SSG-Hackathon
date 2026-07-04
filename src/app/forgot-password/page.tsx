@@ -9,6 +9,7 @@ import {
   FormField,
   AuthPageShell,
 } from "@/components/auth";
+import { getSupabaseBrowserClient } from "@/services/supabase";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
 
@@ -26,10 +27,20 @@ export default function ForgotPasswordPage() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { error: resetError } = await getSupabaseBrowserClient().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/login`,
+      });
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setSent(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send reset email.");
+    } finally {
       setIsLoading(false);
-      setSent(true);
-    }, 1000);
+    }
   }
 
   if (sent) {

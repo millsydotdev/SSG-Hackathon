@@ -25,7 +25,7 @@ export default function NotesPage() {
   function load() {
     setIsLoading(true);
     svc.list(activeHackathon?.id ?? null, null, filterType === "personal" ? "personal" : undefined, showArchived)
-      .then(setNotes).catch(() => {}).finally(() => setIsLoading(false));
+      .then(setNotes).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }
 
   useEffect(() => { load(); }, [activeHackathon, filterType, showArchived]);
@@ -45,7 +45,7 @@ export default function NotesPage() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       setIsSaving(true);
-      await svc.update(activeNote.id, { title: editTitle, content: editContent, category: editCategory }).catch(() => {});
+      await svc.update(activeNote.id, { title: editTitle, content: editContent, category: editCategory }).catch((err) => console.error("[Page] error:", err));
       setIsSaving(false);
     }, 1000);
   }

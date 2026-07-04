@@ -10,7 +10,7 @@ export default function AdminTemplatesPage() {
   useEffect(() => {
     createAdminService().listTemplates()
       .then((data) => setTemplates((data ?? []) as Record<string, unknown>[]))
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

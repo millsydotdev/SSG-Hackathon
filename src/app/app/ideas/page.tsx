@@ -87,7 +87,7 @@ export default function IdeasPage() {
   function loadIdeas() {
     if (!activeHackathon) return;
     setIsLoading(true);
-    svc.list(activeHackathon.id, showArchived).then(setIdeas).catch(() => {}).finally(() => setIsLoading(false));
+    svc.list(activeHackathon.id, showArchived).then(setIdeas).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }
 
   useEffect(() => { if (activeHackathon) loadIdeas(); }, [activeHackathon, showArchived]);
@@ -116,12 +116,12 @@ export default function IdeasPage() {
   }
 
   async function handlePin(id: string, pinned: boolean) {
-    await svc.update(id, { pinned }).catch(() => {});
+    await svc.update(id, { pinned }).catch((err) => console.error("[Page] error:", err));
     loadIdeas();
   }
 
   async function handleArchive(id: string, archived: boolean) {
-    await svc.update(id, { archived }).catch(() => {});
+    await svc.update(id, { archived }).catch((err) => console.error("[Page] error:", err));
     loadIdeas();
   }
 

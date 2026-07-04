@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "scripts/**",
     "src/types/supabase.ts",
+    ".opencode/**",
   ]),
   {
     rules: {

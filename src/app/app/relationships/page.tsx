@@ -27,7 +27,7 @@ export default function RelationshipsPage() {
   useEffect(() => {
     if (!activeHackathon) return;
     setIsLoading(true);
-    createRelationshipService().getGraph(activeHackathon.id).then(setGraph).catch(() => {}).finally(() => setIsLoading(false));
+    createRelationshipService().getGraph(activeHackathon.id).then(setGraph).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, [activeHackathon]);
 
   let nodes = graph.nodes;

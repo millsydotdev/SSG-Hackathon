@@ -45,7 +45,7 @@ export default function SubmissionPrepPage() {
     svc.get(activeHackathon.id).then((s) => {
       setSubmission(s);
       if (s) { setTitle(s.title); setGithubRepo(s.githubRepo ?? ""); setDevpostUrl(s.devpostUrl ?? ""); setLiveDemoUrl(s.liveDemoUrl ?? ""); setVideoUrl(s.videoUrl ?? ""); setPresentationUrl(s.presentationUrl ?? ""); }
-    }).catch(() => {}).finally(() => setIsLoading(false));
+    }).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }
 
   useEffect(() => { load(); }, [activeHackathon]);

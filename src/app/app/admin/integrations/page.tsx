@@ -11,7 +11,7 @@ export default function AdminIntegrationsPage() {
   useEffect(() => {
     createAdminService().getDashboard()
       .then((d) => setDashboard(d))
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

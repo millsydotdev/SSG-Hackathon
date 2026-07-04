@@ -15,7 +15,7 @@ export default function CreateWorkspacePage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    createTemplateService().list().then(setTemplates).catch(() => {});
+    createTemplateService().list().then(setTemplates).catch((err) => console.error("[Page] error:", err));
   }, []);
 
   function update(partial: Partial<WizardState>) {

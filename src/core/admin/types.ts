@@ -29,6 +29,8 @@ export interface AdminDashboard {
   integrationErrors: number;
   automationRules: number;
   automationFailed: number;
+  automationDisabled: number;
+  automationRunCount: number;
   storageUsed: string;
   storagePct: number;
   databaseStatus: "healthy" | "warning" | "error";

@@ -11,7 +11,7 @@ export default function AdminDatabasePage() {
   useEffect(() => {
     createAdminService().getDatabaseOverview()
       .then(setDb)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

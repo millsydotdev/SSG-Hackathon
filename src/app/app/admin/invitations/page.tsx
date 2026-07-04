@@ -13,7 +13,7 @@ export default function AdminInvitationsPage() {
   useEffect(() => {
     createAdminService().listInvitations()
       .then(setInvitations)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

@@ -13,7 +13,7 @@ export default function AdminMembersPage() {
   useEffect(() => {
     createAdminService().listMembers()
       .then(setMembers)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

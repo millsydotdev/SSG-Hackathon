@@ -58,3 +58,5 @@ supabase/.branches/
 
 .vercel
 .env*
+
+.opencode/

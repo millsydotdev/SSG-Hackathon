@@ -17,7 +17,7 @@ export default function EventDetailPage() {
   useEffect(() => {
     svc.getBySlug(params.slug as string).then((e) => {
       setEvent(e); setOwnerNotes(e?.ownerNotes ?? "");
-    }).catch(() => {}).finally(() => setIsLoading(false));
+    }).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, [params.slug]);
 
   async function saveNotes() {

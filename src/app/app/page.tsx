@@ -13,6 +13,7 @@ import { createIntegrationService } from "@/core/integrations";
 import { createAutomationService } from "@/core/automation";
 import { createAdminService } from "@/core/admin";
 import { useAuth } from "@/identity";
+import { formatTimeAgo, ProgressWidget, TodayWidget, BlockerWidget, QuickAction } from "@/components/mission-control";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
@@ -73,7 +74,7 @@ export default function MissionControlPage() {
       setAutoRuleCount(autoRules.filter((r: { enabled: boolean }) => r.enabled).length);
       setAutoFailedRuns(autoRuns.filter((r: { status: string }) => r.status === "failed").length);
       setIsOwner(owner as boolean);
-    }).catch(() => {}).finally(() => setIsLoading(false));
+    }).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, [activeHackathon, user]);
 
   // Determine submission readiness
@@ -420,57 +421,5 @@ export default function MissionControlPage() {
         )}
       </div>
     </div>
-  );
-}
-
-function formatTimeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
-function ProgressWidget({ label, pct, sub, color, large }: { label: string; pct: number; sub: string; color: string; large?: boolean }) {
-  return (
-    <div className={large ? "sm:col-span-3" : ""}>
-      <div className="mb-xs flex justify-between font-mono text-[10px] text-on-surface-variant">
-        <span>{label}</span><span>{sub}</span>
-      </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-        <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function TodayWidget({ label, count, color }: { label: string; count: number; color?: string }) {
-  return (
-    <div>
-      <p className={`text-[24px] font-bold leading-none ${color ?? "text-on-surface"}`}>{count}</p>
-      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{label}</p>
-    </div>
-  );
-}
-
-function BlockerWidget({ label, count }: { label: string; count: number }) {
-  return (
-    <div>
-      <p className="text-[24px] font-bold leading-none text-error">{count}</p>
-      <p className="mt-xs font-mono text-[10px] text-on-surface-variant">{label}</p>
-    </div>
-  );
-}
-
-function QuickAction({ href, icon, label }: { href: string; icon: string; label: string }) {
-  return (
-    <Link href={href}
-      className="flex items-center gap-sm rounded px-sm py-sm text-body-sm text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface">
-      <span className="material-symbols-outlined text-[16px]">{icon}</span>
-      {label}
-    </Link>
   );
 }

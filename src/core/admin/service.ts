@@ -62,7 +62,7 @@ export function createAdminService() {
 
   // ── Dashboard ──
   async function getDashboard(): Promise<AdminDashboard> {
-    const [config, hackathons, integrations, automation, files, activity, members] = await Promise.all([
+    const [config, hackathons, integrations, automation, files, activity, members, autoRuns] = await Promise.all([
       getPlatformConfig(),
       client().from("hackathons").select("id, name, status").order("created_at", { ascending: false }),
       client().from("integration_connections").select("id, status"),
@@ -70,6 +70,7 @@ export function createAdminService() {
       client().from("files").select("file_size"),
       client().from("activity_events").select("severity").eq("severity", "error").limit(1000),
       client().from("team_members").select("id"),
+      client().from("automation_runs").select("status").limit(1000),
     ]);
 
     const activeHackathon = (hackathons.data ?? []).find(
@@ -80,6 +81,8 @@ export function createAdminService() {
       (a: number, f: { file_size: number | null }) => a + (f.file_size ?? 0), 0,
     );
     const sizeMB = totalSize / (1024 * 1024);
+    const autoRules = (automation.data ?? []) as { enabled: boolean }[];
+    const autoRunsRows = (autoRuns.data ?? []) as { status: string }[];
 
     return {
       platformHealth: "healthy",
@@ -91,8 +94,10 @@ export function createAdminService() {
       integrationErrors: (integrations.data ?? []).filter(
         (i: { status: string }) => i.status === "error",
       ).length,
-      automationRules: (automation.data ?? []).length,
-      automationFailed: 0,
+      automationRules: autoRules.length,
+      automationFailed: autoRunsRows.filter((r) => r.status === "failed").length,
+      automationDisabled: autoRules.filter((r) => !r.enabled).length,
+      automationRunCount: autoRunsRows.length,
       storageUsed: sizeMB >= 1024
         ? `${(sizeMB / 1024).toFixed(1)} GB`
         : `${sizeMB.toFixed(0)} MB`,

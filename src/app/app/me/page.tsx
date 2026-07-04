@@ -19,10 +19,10 @@ export default function MyDashboardPage() {
 
   useEffect(() => {
     if (!activeHackathon || !user) return;
-    createTaskService().list(activeHackathon.id).then(setTasks).catch(() => {});
-    createNotificationService().list(user.id).then((n) => setNotifications(n.slice(0, 10))).catch(() => {});
-    createCommentService().getMentions(user.id).then(setMentions).catch(() => {});
-    createReviewService().getPendingReviews(user.id).then(setPendingReviews).catch(() => {});
+    createTaskService().list(activeHackathon.id).then(setTasks).catch((err) => console.error("[Page] error:", err));
+    createNotificationService().list(user.id).then((n) => setNotifications(n.slice(0, 10))).catch((err) => console.error("[Page] error:", err));
+    createCommentService().getMentions(user.id).then(setMentions).catch((err) => console.error("[Page] error:", err));
+    createReviewService().getPendingReviews(user.id).then(setPendingReviews).catch((err) => console.error("[Page] error:", err));
   }, [activeHackathon, user]);
 
   const myTasks = tasks.filter((t) => t.owner === user?.username || t.assignees?.includes(user?.username ?? ""));

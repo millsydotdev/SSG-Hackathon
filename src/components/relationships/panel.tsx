@@ -14,7 +14,7 @@ export function RelationshipPanel({ module, id }: RelationshipPanelProps) {
 
   useEffect(() => {
     if (!isOpen) return;
-    createRelationshipService().getForSource(module, id).then(setRelationships).catch(() => {});
+    createRelationshipService().getForSource(module, id).then(setRelationships).catch((err) => console.error("[Page] error:", err));
   }, [isOpen, module, id]);
 
   return (

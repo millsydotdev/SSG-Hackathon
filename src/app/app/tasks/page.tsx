@@ -41,7 +41,7 @@ export default function TasksPage() {
   const load = useCallback(() => {
     if (!activeHackathon) return;
     setIsLoading(true);
-    svc.list(activeHackathon.id, showArchived).then(setTasks).catch(() => {}).finally(() => setIsLoading(false));
+    svc.list(activeHackathon.id, showArchived).then(setTasks).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, [activeHackathon, showArchived]);
 
   useEffect(() => { load(); }, [load]);

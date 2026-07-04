@@ -15,7 +15,7 @@ export default function AdminActivityPage() {
         setEvents(all);
         setErrors(all.filter((e) => e.severity === "error"));
       })
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

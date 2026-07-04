@@ -40,7 +40,7 @@ export default function ProfileSettingsPage() {
           setBio(profile.bio ?? "");
         }
       })
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setIsLoading(false));
   }, [authLoading, isAuthenticated, user, router]);
 

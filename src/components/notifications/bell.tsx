@@ -15,9 +15,9 @@ export function NotificationBell() {
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     const svc = createNotificationService();
-    svc.getUnreadCount(user.id).then(setUnreadCount).catch(() => {});
-    svc.list(user.id).then((n) => setNotifications(n.slice(0, 5))).catch(() => {});
-    const interval = setInterval(() => { svc.getUnreadCount(user.id).then(setUnreadCount).catch(() => {}); }, 30000);
+    svc.getUnreadCount(user.id).then(setUnreadCount).catch((err) => console.error("[Page] error:", err));
+    svc.list(user.id).then((n) => setNotifications(n.slice(0, 5))).catch((err) => console.error("[Page] error:", err));
+    const interval = setInterval(() => { svc.getUnreadCount(user.id).then(setUnreadCount).catch((err) => console.error("[Page] error:", err)); }, 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated, user]);
 

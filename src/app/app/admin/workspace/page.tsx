@@ -13,7 +13,7 @@ export default function AdminWorkspacePage() {
   useEffect(() => {
     createAdminService().getDashboard()
       .then(setDashboard)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

@@ -13,7 +13,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     setIsFetching(true);
-    createNotificationService().list(user.id, filter === "archived").then(setNotifications).catch(() => {}).finally(() => setIsFetching(false));
+    createNotificationService().list(user.id, filter === "archived").then(setNotifications).catch((err) => console.error("[Page] error:", err)).finally(() => setIsFetching(false));
   }, [isAuthenticated, user, filter]);
 
   async function handleRead(id: string) {

@@ -31,10 +31,9 @@ export function createGitHubService() {
   async function saveConnection(hackathonId: string, authType: AuthType, token: string, userId: string): Promise<GitHubConnection> {
     let encryptedToken = "";
     if (authType === "pat" && token) {
-      try {
-        const result = await (client().rpc("encrypt_token" as never, { plaintext: token } as never) as unknown as Promise<{ data: string }>);
-        encryptedToken = result.data;
-      } catch { /* fall through to plaintext if encryption fails */ }
+      const result = await (client().rpc("encrypt_token" as never, { plaintext: token } as never) as unknown as Promise<{ data: string }>);
+      if (!result.data) throw new Error("Failed to encrypt PAT token");
+      encryptedToken = result.data;
     }
 
     const { data } = await client()
@@ -42,7 +41,7 @@ export function createGitHubService() {
       .insert({
         hackathon_id: hackathonId,
         auth_type: authType,
-        access_token: encryptedToken ? "" : token,
+        access_token: "",
         encrypted_token: encryptedToken || null,
         created_by: userId,
       } as never)

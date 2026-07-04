@@ -36,7 +36,7 @@ function SectionView({ hackathonId, section }: { hackathonId: string; section: s
       notes: () => srv.listNotes(hackathonId),
     };
     const loader = loaders[section];
-    Promise.resolve(loader ? loader().then((r) => setItems(r as unknown[])) : undefined).catch(() => {}).finally(() => setIsLoading(false));
+    Promise.resolve(loader ? loader().then((r) => setItems(r as unknown[])) : undefined).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }, [hackathonId, section]);
 
   async function handleAdd() {
@@ -145,7 +145,7 @@ export default function PlanningPage() {
     createPlanningService()
       .getCounts(activeHackathon.id)
       .then(setCounts)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setIsLoading(false));
   }, [activeHackathon]);
 

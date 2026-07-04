@@ -11,7 +11,7 @@ export default function AdminStoragePage() {
   useEffect(() => {
     createAdminService().getStorageOverview()
       .then(setStorage)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 

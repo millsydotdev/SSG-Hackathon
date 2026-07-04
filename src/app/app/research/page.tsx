@@ -47,7 +47,7 @@ export default function ResearchPage() {
   function load() {
     if (!activeHackathon) return;
     setIsLoading(true);
-    svc.list(activeHackathon.id, showArchived).then(setItems).catch(() => {}).finally(() => setIsLoading(false));
+    svc.list(activeHackathon.id, showArchived).then(setItems).catch((err) => console.error("[Page] error:", err)).finally(() => setIsLoading(false));
   }
 
   useEffect(() => { if (activeHackathon) load(); }, [activeHackathon, showArchived]);

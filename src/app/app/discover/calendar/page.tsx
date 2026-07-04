@@ -11,7 +11,7 @@ export default function CalendarPage() {
   const [view, setView] = useState<"month" | "agenda">("month");
 
   useEffect(() => {
-    createDiscoveryService().list().then(setEvents).catch(() => {});
+    createDiscoveryService().list().then(setEvents).catch((err) => console.error("[Page] error:", err));
   }, []);
 
   const monthEvents = events.filter((e) => {

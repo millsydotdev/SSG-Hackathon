@@ -10,7 +10,7 @@ export default function AdminPlatformPage() {
   useEffect(() => {
     createAdminService().getPlatformInfo()
       .then(setInfo)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setLoading(false));
   }, []);
 
