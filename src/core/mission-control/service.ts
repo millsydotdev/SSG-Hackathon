@@ -4,7 +4,7 @@ import { createResearchService } from "@/core/research";
 import { createTaskService } from "@/core/tasks";
 import { createSubmissionService } from "@/core/submission";
 import { createProfileService } from "@/core/profile";
-import { getSupabaseServerClient } from "@/services/supabase";
+import { getSupabaseBrowserClient } from "@/services/supabase";
 
 export interface MissionControlData {
   overall: { pct: number; label: string };
@@ -82,17 +82,15 @@ export async function loadMissionControl(hackathonId: string): Promise<MissionCo
 
   // My work
   const assignedTasks = tsk.filter((t) => t.owner && t.status !== "done" && t.status !== "archived").length;
-  const recentFiles = (await getSupabaseServerClient()
-    .from("files")
-    .select("id", { count: "exact", head: true })
-    .eq("hackathon_id", hackathonId)
-    .limit(1)).count ?? 0;
-  const pinnedNotes = (await getSupabaseServerClient()
-    .from("notes")
-    .select("id", { count: "exact", head: true })
-    .eq("hackathon_id", hackathonId)
-    .eq("pinned", true)
-    .limit(1)).count ?? 0;
+  let recentFiles = 0;
+  let pinnedNotes = 0;
+  try {
+    const sb = getSupabaseBrowserClient();
+    const filesCount = await sb.from("files").select("id", { count: "exact", head: true }).eq("hackathon_id", hackathonId).limit(1);
+    recentFiles = filesCount.count ?? 0;
+    const notesCount = await sb.from("notes").select("id", { count: "exact", head: true }).eq("hackathon_id", hackathonId).eq("pinned", true).limit(1);
+    pinnedNotes = notesCount.count ?? 0;
+  } catch { /* use defaults */ }
 
   // Upcoming
   const milestones = (await planning.listMilestones(hackathonId).catch(() => [])).filter((m) => m.status === "pending" || m.status === "in_progress").length;
