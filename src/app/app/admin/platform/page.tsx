@@ -37,7 +37,7 @@ export default function AdminPlatformPage() {
 
   const rows = [
     { label: "Platform Name", value: info.platformName },
-    { label: "Platform Owner", value: info.ownerName },
+    { label: "Owner", value: info.ownerName },
     { label: "Owner Email", value: info.ownerEmail },
     { label: "Platform Version", value: `v${info.version}` },
     { label: "Schema Version", value: "1" },

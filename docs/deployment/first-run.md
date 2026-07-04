@@ -44,15 +44,15 @@ The setup wizard guides you through:
 1. **Welcome** — Explanation of the setup process
 2. **Setup Key** — Enter the `PLATFORM_SETUP_KEY` environment variable value
 3. **Platform Information** — Name, timezone, locale
-4. **Owner Account** — Create the Platform Owner account
+4. **Owner Account** — Create the Owner account
 5. **Review** — Confirm all details
-6. **Initialise** — Creates the owner account and platform configuration
+6. **Initialise** — Creates the owner account, platform configuration, and automatically signs you in
 
-After successful initialisation, you will be redirected to sign in with the owner credentials.
+After successful initialisation, you will be automatically signed in and redirected to Mission Control.
 
 ## Owner Responsibilities
 
-The Platform Owner:
+The Owner:
 
 - Access the Owner Control Centre at `/app/admin`
 - Manage members, invitations, and platform settings

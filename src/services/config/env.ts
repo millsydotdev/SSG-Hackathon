@@ -39,7 +39,7 @@ export const envVars: EnvVar[] = [
   },
   {
     key: "PLATFORM_SETUP_KEY",
-    required: false,
+    required: true,
     description: "Required for first-run platform initialisation (server only)",
   },
 ];

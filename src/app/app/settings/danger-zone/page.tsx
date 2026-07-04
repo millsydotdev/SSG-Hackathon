@@ -16,7 +16,7 @@ export default function DangerZonePage() {
     if (authLoading || !isAuthenticated || !user) return;
     createAdminService().isPlatformOwner(user.id)
       .then(setIsOwner)
-      .catch(() => {})
+      .catch((err) => console.error("[Page] error:", err))
       .finally(() => setChecking(false));
   }, [authLoading, isAuthenticated, user]);
 

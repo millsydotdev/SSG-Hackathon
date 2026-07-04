@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   AuthCard, AuthHeader, AuthPageShell,
@@ -8,6 +8,7 @@ import {
 import { Input, Button } from "@/components/ui";
 import { createSetupService, type PlatformSetupInput, type OwnerSetupInput, type SetupStep } from "@/core/setup";
 import { config } from "@/services/config";
+import { getSupabaseBrowserClient } from "@/services/supabase";
 
 const INITIAL_PLATFORM: PlatformSetupInput = {
   platformName: "SSG-Hackathon",
@@ -31,18 +32,47 @@ export function SetupWizard() {
   const [platform, setPlatform] = useState<PlatformSetupInput>(INITIAL_PLATFORM);
   const [owner, setOwner] = useState<OwnerSetupInput>(INITIAL_OWNER);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [gitHubConnected, setGitHubConnected] = useState("");
   const [error, setError] = useState("");
   const [initialising, setInitialising] = useState(false);
+
+  // Restore form state after OAuth redirect
+  useEffect(() => {
+    const saved = sessionStorage.getItem("setup_form");
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.step) setStep(data.step);
+        if (data.platform) setPlatform(data.platform);
+        if (data.owner) setOwner(data.owner);
+        if (data.confirmPassword !== undefined) setConfirmPassword(data.confirmPassword);
+        if (data.gitHubConnected) setGitHubConnected(data.gitHubConnected);
+      } catch { /* ignore */ }
+      sessionStorage.removeItem("setup_form");
+    }
+  }, []);
+
+  // Detect GitHub OAuth return
+  useEffect(() => {
+    const sb = getSupabaseBrowserClient();
+    sb.auth.getSession().then(({ data }: { data: { session: { provider_token?: string | null; user?: { user_metadata?: Record<string, unknown> } } | null } | null }) => {
+      if (data?.session?.provider_token && !gitHubConnected) {
+        const name = data.session.user?.user_metadata?.user_name;
+        setGitHubConnected(typeof name === "string" ? name : "Connected");
+      }
+    }).catch(() => {});
+  }, [gitHubConnected]);
 
   async function handleKeySubmit(e: FormEvent) {
     e.preventDefault();
     setKeyError("");
-    const { data } = await fetch("/api/validate-setup-key", {
+    const res = await fetch("/api/validate-setup-key", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ key: setupKey }),
-    }).then((r) => r.json());
-    if (data?.valid) {
+    });
+    const body: { data?: { valid: boolean } } = await res.json();
+    if (body.data?.valid) {
       setStep("platform");
     } else {
       setKeyError("Invalid setup key.");
@@ -60,6 +90,17 @@ export function SetupWizard() {
     setStep("review");
   }
 
+  async function handleGitHubConnect() {
+    sessionStorage.setItem("setup_form", JSON.stringify({
+      step, setupKey, platform, owner, confirmPassword, gitHubConnected,
+    }));
+    const sb = getSupabaseBrowserClient();
+    await sb.auth.signInWithOAuth({
+      provider: "github",
+      options: { redirectTo: `${window.location.origin}/setup` },
+    });
+  }
+
   async function handleInitialise() {
     setInitialising(true);
     setError("");
@@ -70,8 +111,20 @@ export function SetupWizard() {
         setStep("owner");
         return;
       }
-      setStep("complete");
-      setTimeout(() => router.push("/login"), 2000);
+
+      // Auto-sign-in after successful platform creation
+      const sb = getSupabaseBrowserClient();
+      const { error: signInError } = await sb.auth.signInWithPassword({
+        email: owner.email,
+        password: owner.password,
+      });
+      if (signInError) {
+        setError("Platform created but auto-login failed. Please sign in manually.");
+        setStep("complete");
+        return;
+      }
+
+      router.push("/app");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error.");
       setStep("owner");
@@ -99,7 +152,7 @@ export function SetupWizard() {
             step === "welcome"
               ? "This deployment has not yet been configured. Only the deployment administrator should continue."
               : step === "complete"
-                ? "Redirecting you to sign in..."
+                ? "Platform created. Redirecting to Mission Control..."
                 : `Step ${["welcome", "key", "platform", "owner", "review", "complete"].indexOf(step)} of 5`
           }
         />
@@ -108,7 +161,7 @@ export function SetupWizard() {
           <div className="flex flex-col gap-md">
             <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
               <p className="text-body-sm text-on-surface-variant">
-                This setup wizard will guide you through creating the Platform Owner account
+                This setup wizard will guide you through creating the Owner account
                 and configuring SSG-Hackathon for first use. This process can only be completed once.
               </p>
             </div>
@@ -200,10 +253,31 @@ export function SetupWizard() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <div className="flex items-center gap-sm rounded border border-outline-variant/30 bg-surface-container-low px-md py-sm">
-              <span className="material-symbols-outlined text-[18px] text-on-surface-variant">link</span>
-              <span className="flex-1 font-mono text-[10px] text-on-surface-variant">GitHub connection is optional and can be configured later in Settings.</span>
+
+            {/* GitHub OAuth */}
+            <div className="flex items-center justify-between rounded border border-outline-variant/20 bg-surface-container-lowest p-sm">
+              <div className="flex items-center gap-sm">
+                <span className="material-symbols-outlined text-[16px] text-on-surface-variant">code</span>
+                <div>
+                  <p className="text-body-sm text-on-surface">GitHub</p>
+                  <p className="font-mono text-[9px] text-on-surface-variant">
+                    {gitHubConnected ? `Connected as ${gitHubConnected}` : "Not connected (optional)"}
+                  </p>
+                </div>
+              </div>
+              {gitHubConnected ? (
+                <span className="flex items-center gap-xs font-mono text-[9px] text-[#3fb950]">
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                  Connected
+                </span>
+              ) : (
+                <button type="button" onClick={handleGitHubConnect} disabled={initialising}
+                  className="rounded bg-surface-container-high px-sm py-xs text-body-xs text-on-surface transition-colors hover:bg-surface-container-highest disabled:opacity-50">
+                  Connect GitHub
+                </button>
+              )}
             </div>
+
             {error && <p role="alert" className="font-mono text-[10px] text-error">{error}</p>}
             <div className="flex gap-sm">
               <Button variant="ghost" onClick={() => setStep("platform")}>Back</Button>
@@ -223,7 +297,7 @@ export function SetupWizard() {
             <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
               <h3 className="mb-xs font-mono text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">Owner</h3>
               <p className="text-body-sm text-on-surface">{owner.displayName}</p>
-              <p className="font-mono text-[9px] text-on-surface-variant">@{owner.username} · {owner.email}</p>
+              <p className="font-mono text-[9px] text-on-surface-variant">@{owner.username} · {owner.email}{gitHubConnected ? ` · GitHub: ${gitHubConnected}` : ""}</p>
             </div>
             <div className="rounded border border-outline-variant/30 bg-surface-container-low p-md">
               <h3 className="mb-xs font-mono text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">Environment</h3>
@@ -241,12 +315,16 @@ export function SetupWizard() {
         )}
 
         {step === "complete" && (
-          <div className="flex items-center justify-center py-lg">
+          <div className="flex flex-col items-center gap-md py-lg">
             <div className="flex items-center gap-sm">
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:150ms]" />
               <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary [animation-delay:300ms]" />
             </div>
+            <p className="font-mono text-[10px] text-on-surface-variant">{error ?? "Redirecting to Mission Control..."}</p>
+            {error && (
+              <Button onClick={() => router.push("/login")}>Go to Sign In</Button>
+            )}
           </div>
         )}
       </AuthCard>

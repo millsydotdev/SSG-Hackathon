@@ -16,7 +16,7 @@ export default function SecuritySettingsPage() {
         const id = token ? token.slice(-8) : "—";
         setSessions([{ id, createdAt: new Date(data.session.expires_at ?? 0).toISOString() }]);
       }
-    }).catch(() => {});
+    }).catch((err: unknown) => console.error("[Page] error:", err));
   }, [isAuthenticated]);
 
   if (isLoading || !isAuthenticated) return null;

@@ -9,7 +9,7 @@ export function createAdminService() {
     return getSupabaseServerClient();
   }
 
-  // ── Platform Owner ──
+  // ── Owner ──
   async function getPlatformConfig(): Promise<PlatformConfig | null> {
     const { data } = await client()
       .from("platform_config")
@@ -131,7 +131,7 @@ export function createAdminService() {
     return {
       platformName: config.platformName,
       ownerId: config.ownerId,
-      ownerName: (profile as { display_name?: string } | null)?.display_name ?? "Platform Owner",
+      ownerName: (profile as { display_name?: string } | null)?.display_name ?? "Owner",
       ownerEmail: (authUser as { email?: string } | null)?.email ?? "",
       deployedAt: config.deployedAt,
       version: config.version,

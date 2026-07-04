@@ -13,11 +13,3 @@ export interface OwnerSetupInput {
   email: string;
   password: string;
 }
-
-export interface SetupState {
-  step: SetupStep;
-  setupKey: string;
-  platform: PlatformSetupInput;
-  owner: OwnerSetupInput;
-  githubConnected: boolean;
-}

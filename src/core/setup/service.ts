@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/services/supabase";
+import { config } from "@/services/config";
 import type { PlatformSetupInput, OwnerSetupInput } from "./types";
 
 export function createSetupService() {
@@ -66,7 +67,7 @@ export function createSetupService() {
         platform_name: platform.platformName,
         description: platform.description ?? null,
         default_locale: platform.defaultLocale,
-        version: "1.0.0",
+        version: config.app.version,
         schema_version: 1,
         initialized: true,
         initialised_at: new Date().toISOString(),
