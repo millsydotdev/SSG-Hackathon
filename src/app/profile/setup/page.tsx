@@ -90,6 +90,7 @@ export default function ProfileSetupPage() {
     <AuthPageShell>
       <AuthCard>
         <AuthHeader
+          showLogo
           title="Welcome aboard!"
           subtitle="Set up your profile to get started."
         />

@@ -112,6 +112,7 @@ export default function JoinPage() {
     <AuthPageShell>
       <AuthCard>
         <AuthHeader
+          showLogo
           title="Join Team"
           subtitle="Complete your account to join the hackathon workspace."
         />

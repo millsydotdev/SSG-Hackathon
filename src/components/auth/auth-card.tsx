@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/packages/utils";
 
 interface AuthCardProps {
@@ -23,15 +24,21 @@ export function AuthCard({ children, className }: AuthCardProps) {
 interface AuthHeaderProps {
   title: string;
   subtitle?: string;
-  logo?: string;
+  showLogo?: boolean;
 }
 
-export function AuthHeader({ title, subtitle, logo }: AuthHeaderProps) {
+export function AuthHeader({ title, subtitle, showLogo }: AuthHeaderProps) {
   return (
     <div className="gap-sm flex flex-col items-center">
-      {logo && (
-        <div className="bg-primary text-h2 text-on-primary flex h-12 w-12 items-center justify-center rounded font-bold tracking-tighter shadow-[0_0_15px_rgba(224,30,46,0.3)]">
-          {logo}
+      {showLogo && (
+        <div className="flex h-12 w-12 items-center justify-center">
+          <Image
+            src="/logo-192.png"
+            alt={title}
+            width={48}
+            height={48}
+            className="rounded object-contain"
+          />
         </div>
       )}
       <h1 className="mt-sm text-h2 text-on-surface font-semibold">{title}</h1>

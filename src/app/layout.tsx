@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   },
   description:
     "An invite-only collaborative workstation for hackathon teams. Manage participation, planning, development, submission, and judging.",
+  icons: {
+    icon: "/logo-192.png",
+    apple: "/logo-192.png",
+  },
 };
 
 export const viewport: Viewport = {

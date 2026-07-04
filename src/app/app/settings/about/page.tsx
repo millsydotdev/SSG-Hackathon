@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AboutPage() {
@@ -8,7 +9,9 @@ export default function AboutPage() {
       <h1 className="mb-lg text-h1 font-semibold text-on-surface">About</h1>
 
       <div className="rounded border border-outline-variant/30 bg-surface-container p-lg">
-        <div className="mb-md flex h-12 w-12 items-center justify-center rounded bg-primary text-h2 font-bold tracking-tighter text-on-primary">SSG</div>
+        <div className="mb-md flex h-12 w-12 items-center justify-center">
+          <Image src="/logo-192.png" alt="SSG-Hackathon" width={48} height={48} className="rounded object-contain" />
+        </div>
         <h2 className="text-h2 font-semibold text-on-surface">SSG-Hackathon</h2>
         <p className="mt-xs font-mono text-[10px] text-on-surface-variant">v0.1.0 · MIT License</p>
         <p className="mt-md text-body-sm text-on-surface-variant">

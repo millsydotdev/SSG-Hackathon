@@ -38,7 +38,7 @@ export default function HomePage() {
     <AuthPageShell>
       <AuthCard>
         <AuthHeader
-          logo="SSG"
+          showLogo
           title="SSG-Hackathon"
           subtitle="Private Collaborative Workstation"
         />

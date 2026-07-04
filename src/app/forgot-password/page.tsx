@@ -37,6 +37,7 @@ export default function ForgotPasswordPage() {
       <AuthPageShell>
         <AuthCard>
           <AuthHeader
+            showLogo
             title="Check Your Email"
             subtitle="If an account exists with that email, we've sent password reset instructions."
           />
@@ -55,6 +56,7 @@ export default function ForgotPasswordPage() {
     <AuthPageShell>
       <AuthCard>
         <AuthHeader
+          showLogo
           title="Reset Password"
           subtitle="Enter your email and we'll send you reset instructions."
         />

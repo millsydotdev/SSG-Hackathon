@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/identity";
 import { NotificationBell } from "@/components/notifications";
@@ -40,7 +41,10 @@ export function TopNav({ className, title = "SSG-Hackathon" }: TopNavProps) {
   return (
     <header className={cn("flex h-12 shrink-0 items-center justify-between border-b border-outline-variant bg-surface px-md", className)}>
       <div className="flex items-center gap-lg">
-        <h1 className="hidden text-h1 font-semibold text-on-surface md:block">{title}</h1>
+        <div className="hidden items-center gap-sm md:flex">
+          <Image src="/logo-192.png" alt="SSG-Hackathon" width={24} height={24} className="rounded object-contain" />
+          <h1 className="text-h1 font-semibold text-on-surface">{title}</h1>
+        </div>
       </div>
       <div className="flex items-center gap-md">
         <Link href="/app/me" className="flex h-8 w-8 items-center justify-center rounded text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface" aria-label="My workspace">

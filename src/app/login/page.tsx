@@ -96,6 +96,7 @@ export default function LoginPage() {
     <AuthPageShell>
       <AuthCard>
         <AuthHeader
+          showLogo
           title="Sign In"
           subtitle="Enter your workspace credentials to access the secure environment."
         />

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -25,9 +26,12 @@ export function Sidebar({ className }: SidebarProps) {
       )}
     >
       <div className="flex flex-col gap-xs border-b border-outline-variant px-md pb-lg pt-md">
-        <h2 className="text-h2 font-semibold text-on-surface">
-          SSG-Hackathon
-        </h2>
+        <div className="flex items-center gap-sm">
+          <Image src="/logo-192.png" alt="SSG-Hackathon" width={28} height={28} className="rounded object-contain" />
+          <h2 className="text-h2 font-semibold text-on-surface">
+            SSG-Hackathon
+          </h2>
+        </div>
         <p className="font-mono text-[11px] text-on-surface-variant">
           Private Workstation
         </p>
