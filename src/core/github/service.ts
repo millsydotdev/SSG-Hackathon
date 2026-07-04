@@ -29,12 +29,21 @@ export function createGitHubService() {
   }
 
   async function saveConnection(hackathonId: string, authType: AuthType, token: string, userId: string): Promise<GitHubConnection> {
+    let encryptedToken = "";
+    if (authType === "pat" && token) {
+      try {
+        const result = await (client().rpc("encrypt_token" as never, { plaintext: token } as never) as unknown as Promise<{ data: string }>);
+        encryptedToken = result.data;
+      } catch { /* fall through to plaintext if encryption fails */ }
+    }
+
     const { data } = await client()
       .from("github_connections")
       .insert({
         hackathon_id: hackathonId,
         auth_type: authType,
-        access_token: token,
+        access_token: encryptedToken ? "" : token,
+        encrypted_token: encryptedToken || null,
         created_by: userId,
       } as never)
       .select()
@@ -56,7 +65,15 @@ export function createGitHubService() {
   async function getConnectionToken(hackathonId: string): Promise<string | null> {
     const conn = await getConnection(hackathonId);
     if (!conn) return null;
-    if (conn.authType === "pat") return conn.accessToken;
+    if (conn.authType === "pat") {
+      if (conn.accessToken) return conn.accessToken; // plaintext fallback
+      if (conn.encryptedToken) {
+        try {
+          const result = await (client().rpc("decrypt_token" as never, { ciphertext: conn.encryptedToken } as never) as unknown as Promise<{ data: string }>);
+          return result.data ?? null;
+        } catch { return null; }
+      }
+    }
     return null; // OAuth tokens come from session, not DB
   }
 
@@ -283,6 +300,7 @@ function mapConnectionRow(row: Record<string, unknown>): GitHubConnection {
     hackathonId: row.hackathon_id as string,
     authType: row.auth_type as AuthType,
     accessToken: row.access_token as string,
+    encryptedToken: row.encrypted_token as string | null,
     tokenOwner: row.token_owner as string | null,
     scopes: row.scopes as string | null,
     connectedAt: row.connected_at as string,

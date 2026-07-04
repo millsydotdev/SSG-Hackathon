@@ -5,6 +5,7 @@ export interface GitHubConnection {
   hackathonId: string;
   authType: AuthType;
   accessToken: string;
+  encryptedToken: string | null;
   tokenOwner: string | null;
   scopes: string | null;
   connectedAt: string;
