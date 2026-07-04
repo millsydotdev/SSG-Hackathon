@@ -6,6 +6,7 @@ import { useHackathon } from "@/core/hackathon";
 import { loadMissionControl, type MissionControlData } from "@/core/mission-control";
 import { createActivityService, MODULE_ICONS, type ActivityEvent } from "@/core/activity";
 import { createAnalyticsService, type WorkspaceHealth } from "@/core/analytics";
+import { createArchiveService, type WorkspaceArchive } from "@/core/archive";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
@@ -14,6 +15,8 @@ export default function MissionControlPage() {
   const [timeLeft, setTimeLeft] = useState("");
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [health, setHealth] = useState<WorkspaceHealth | null>(null);
+  const [archiveStats, setArchiveStats] = useState<{ totalArchived: number; wins: number; totalLessons: number } | null>(null);
+  const [recentArchive, setRecentArchive] = useState<WorkspaceArchive | null>(null);
 
   // Live countdown
   useEffect(() => {
@@ -37,7 +40,13 @@ export default function MissionControlPage() {
       loadMissionControl(activeHackathon.id),
       createActivityService().list(activeHackathon.id, 10),
       createAnalyticsService().health(activeHackathon.id),
-    ]).then(([d, a, h]) => { setData(d); setActivity(a); setHealth(h); }).catch(() => {}).finally(() => setIsLoading(false));
+      createArchiveService().stats(),
+      createArchiveService().list({ status: "completed" }),
+    ]).then(([d, a, h, as_, al]) => {
+      setData(d); setActivity(a); setHealth(h);
+      setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
+      setRecentArchive(al[0] ?? null);
+    }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon]);
 
   // Determine submission readiness
@@ -194,6 +203,7 @@ export default function MissionControlPage() {
                     <QuickAction href="/app/team/invitations" icon="group" label="Invite Member" />
                     <QuickAction href="/app/submission-prep" icon="task_alt" label="Submission Prep" />
                     <QuickAction href="/app/planning" icon="map" label="View Planning" />
+                    <QuickAction href="/app/archive" icon="archive" label="View Archive" />
                   </div>
                 </div>
 
@@ -223,6 +233,42 @@ export default function MissionControlPage() {
                     </div>
                     <div className="mt-md">
                       <Link href="/app/analytics" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Analytics →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Archive Summary */}
+                {archiveStats && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Archive</h2>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[28px] font-bold leading-none text-on-surface">{archiveStats.totalArchived}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">
+                          archived workspace{archiveStats.totalArchived !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <div className="flex gap-lg font-mono text-[10px] text-on-surface-variant">
+                        <div className="text-center">
+                          <p className="text-body-sm font-semibold text-[#d4af37]">{archiveStats.wins}</p>
+                          <p>wins</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-body-sm font-semibold text-primary">{archiveStats.totalLessons}</p>
+                          <p>lessons</p>
+                        </div>
+                      </div>
+                    </div>
+                    {recentArchive && (
+                      <div className="mt-sm flex items-center gap-sm rounded bg-surface-container-high px-sm py-xs">
+                        <span className="material-symbols-outlined text-[14px] text-on-surface-variant">history</span>
+                        <span className="flex-1 font-mono text-[10px] text-on-surface-variant">
+                          Last: {recentArchive.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="mt-md">
+                      <Link href="/app/archive" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Archive →</Link>
                     </div>
                   </div>
                 )}
