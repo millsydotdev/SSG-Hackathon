@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SetupWizard } from "@/components/setup/setup-wizard";
-import { createSetupService } from "@/core/setup";
 import { useAuth } from "@/identity";
 
 export default function SetupPage() {
@@ -13,10 +12,10 @@ export default function SetupPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    createSetupService()
-      .isPlatformInitialised()
-      .then((initialised) => {
-        if (initialised) {
+    fetch("/api/platform-status")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.initialised) {
           if (isAuthenticated) router.replace("/app");
           else router.replace("/login");
         } else {

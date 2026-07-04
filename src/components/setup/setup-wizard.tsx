@@ -6,7 +6,7 @@ import {
   AuthCard, AuthHeader, AuthPageShell,
 } from "@/components/auth";
 import { Input, Button } from "@/components/ui";
-import { createSetupService, type PlatformSetupInput, type OwnerSetupInput, type SetupStep } from "@/core/setup";
+import { type PlatformSetupInput, type OwnerSetupInput, type SetupStep } from "@/core/setup";
 import { config } from "@/services/config";
 import { getSupabaseBrowserClient } from "@/services/supabase";
 
@@ -105,7 +105,12 @@ export function SetupWizard() {
     setInitialising(true);
     setError("");
     try {
-      const result = await createSetupService().initialisePlatform(platform, owner);
+      const res = await fetch("/api/initialise-platform", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, owner }),
+      });
+      const result = await res.json();
       if (!result.success) {
         setError(result.error ?? "Initialisation failed.");
         setStep("owner");

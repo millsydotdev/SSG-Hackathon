@@ -1,4 +1,4 @@
-﻿-- Fix auth_rls_initplan warnings: wrap auth.role() in SELECT to avoid per-row re-evaluation
+-- Fix auth_rls_initplan warnings: wrap auth.role() in SELECT to avoid per-row re-evaluation
 -- See https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select
 
 drop policy if exists "Authenticated users can read hackathons" on public.hackathons;
