@@ -33,7 +33,7 @@ Invite-only collaborative workstation for hackathon teams. Next.js 16 + Supabase
 
 ## Database
 
-- 31 migrations at `supabase/migrations/`, numbered `00001_` through `00031_`.
+- 33 migrations at `supabase/migrations/`, numbered `00001_` through `00033_`.
 - 60 tables. Core ones: `hackathons`, `profiles`, `team_members`, `invitations`.
 - Planning module (00008): `objectives`, `milestones`, `deliverables`, `requirements`, `risks`, `decisions`, `checklist_templates`, `checklist_items`, `planning_notes`.
 - Archive module (00023): `workspace_archive`, `workspace_snapshots`, `retrospectives`, `lessons_learned`, `archive_tags`.
