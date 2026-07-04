@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useHackathon } from "@/core/hackathon";
 import { loadMissionControl, type MissionControlData } from "@/core/mission-control";
 import { createActivityService, MODULE_ICONS, type ActivityEvent } from "@/core/activity";
+import { createAnalyticsService, type WorkspaceHealth } from "@/core/analytics";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
@@ -12,6 +13,7 @@ export default function MissionControlPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState("");
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
+  const [health, setHealth] = useState<WorkspaceHealth | null>(null);
 
   // Live countdown
   useEffect(() => {
@@ -34,7 +36,8 @@ export default function MissionControlPage() {
     Promise.all([
       loadMissionControl(activeHackathon.id),
       createActivityService().list(activeHackathon.id, 10),
-    ]).then(([d, a]) => { setData(d); setActivity(a); }).catch(() => {}).finally(() => setIsLoading(false));
+      createAnalyticsService().health(activeHackathon.id),
+    ]).then(([d, a, h]) => { setData(d); setActivity(a); setHealth(h); }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon]);
 
   // Determine submission readiness
@@ -193,6 +196,36 @@ export default function MissionControlPage() {
                     <QuickAction href="/app/planning" icon="map" label="View Planning" />
                   </div>
                 </div>
+
+                {/* Analytics Summary */}
+                {health && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Analytics Summary</h2>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[28px] font-bold leading-none text-on-surface">{health.healthScore}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">health score</p>
+                      </div>
+                      <div className="flex gap-lg font-mono text-[10px] text-on-surface-variant">
+                        <div className="text-center">
+                          <p className="text-body-sm font-semibold text-on-surface">{health.completionPct}%</p>
+                          <p>done</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-body-sm font-semibold ${health.blockedTasks > 0 ? "text-error" : "text-on-surface"}`}>{health.blockedTasks}</p>
+                          <p>blocked</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`text-body-sm font-semibold ${health.overdueTasks > 0 ? "text-error" : "text-on-surface"}`}>{health.overdueTasks}</p>
+                          <p>overdue</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-md">
+                      <Link href="/app/analytics" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Analytics →</Link>
+                    </div>
+                  </div>
+                )}
 
                 {/* Command Palette Entry */}
                 <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">

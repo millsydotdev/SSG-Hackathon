@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { navSections, secondaryNav } from "@/config/navigation";
+import { sidebarNav, secondaryNav } from "@/config/navigation";
 
 interface SidebarProps {
   className?: string;
@@ -38,39 +38,32 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-col overflow-y-auto px-xs py-sm scrollbar-thin">
-        {navSections.map((section) => (
-          <div key={section.label} className="mb-md">
-            <p className="mb-xs px-md font-mono text-[9px] font-bold uppercase tracking-widest text-on-surface-variant">
-              {section.label}
-            </p>
-            {section.items.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-md rounded px-md py-sm text-body-sm transition-all duration-150",
-                    "border-l-2",
-                    active
-                      ? "border-l-primary bg-surface-container-high font-semibold text-on-surface"
-                      : "border-l-transparent text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface",
-                  )}
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <span className="ml-auto rounded bg-surface-container-highest px-xs py-[1px] font-mono text-[10px] text-on-surface-variant">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+        {sidebarNav.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-md rounded px-md py-sm text-body-sm transition-all duration-150",
+                "border-l-2",
+                active
+                  ? "border-l-primary bg-surface-container-high font-semibold text-on-surface"
+                  : "border-l-transparent text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface",
+              )}
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                {item.icon}
+              </span>
+              <span>{item.label}</span>
+              {item.badge && (
+                <span className="ml-auto rounded bg-surface-container-highest px-xs py-[1px] font-mono text-[10px] text-on-surface-variant">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="border-t border-outline-variant px-xs py-sm">
