@@ -37,6 +37,11 @@ export const envVars: EnvVar[] = [
     required: false,
     description: "Upstash Redis REST token",
   },
+  {
+    key: "PLATFORM_SETUP_KEY",
+    required: false,
+    description: "Required for first-run platform initialisation (server only)",
+  },
 ];
 
 export type EnvValidation = {

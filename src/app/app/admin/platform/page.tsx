@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createAdminService, type PlatformInfo } from "@/core/admin";
+import { config } from "@/services/config";
 
 export default function AdminPlatformPage() {
   const [info, setInfo] = useState<PlatformInfo | null>(null);
@@ -38,8 +39,10 @@ export default function AdminPlatformPage() {
     { label: "Platform Name", value: info.platformName },
     { label: "Platform Owner", value: info.ownerName },
     { label: "Owner Email", value: info.ownerEmail },
+    { label: "Platform Version", value: `v${info.version}` },
+    { label: "Schema Version", value: "1" },
+    { label: "Environment", value: config.app.environment },
     { label: "Deployment Date", value: new Date(info.deployedAt).toLocaleDateString() },
-    { label: "Version", value: `v${info.version}` },
     { label: "Initialised", value: info.initialized ? "Yes" : "No" },
   ];
 

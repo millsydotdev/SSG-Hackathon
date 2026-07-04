@@ -14,6 +14,7 @@ import { createAutomationService } from "@/core/automation";
 import { createAdminService } from "@/core/admin";
 import { useAuth } from "@/identity";
 import { formatTimeAgo, ProgressWidget, TodayWidget, BlockerWidget, QuickAction } from "@/components/mission-control";
+import { config } from "@/services/config";
 
 export default function MissionControlPage() {
   const { activeHackathon } = useHackathon();
@@ -305,14 +306,18 @@ export default function MissionControlPage() {
                   </div>
                 )}
 
-                {/* Platform Health (owner only) */}
+                {/* Platform Status (owner only) */}
                 {isOwner && (
                   <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
-                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Platform Health</h2>
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Platform Status</h2>
                     <div className="flex items-center justify-around">
                       <div className="text-center">
                         <p className="text-[24px] font-bold leading-none text-on-surface">{data?.overall.pct ?? 0}%</p>
                         <p className="mt-xs font-mono text-[10px] text-on-surface-variant">health score</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{config.app.version}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">version</p>
                       </div>
                       <div className="text-center">
                         <Link href="/app/admin" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">Open Admin →</Link>

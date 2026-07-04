@@ -41,6 +41,7 @@ Invite-only collaborative workstation for hackathon teams. Next.js 16 + Supabase
 - Integration framework (00028): `integration_connections`, `integration_health`, `integration_logs`, `integration_validations`.
 - Automation (00030): `automation_rules`, `automation_templates`, `automation_runs`, `automation_logs`.
 - Admin (00031): `platform_config`, `admin_logs`.
+- Setup (00032): extends `platform_config` for first-run, adds `is_platform_initialised` RPC.
 - RLS is permissive — most tables allow any authenticated user to read/write. Only `platform_config`, `admin_logs`, `app_secrets` have restricted access.
 - PAT encryption via `pgp_sym_encrypt` in RPC functions `encrypt_token`/`decrypt_token`.
 - Migration `00029` migrates `github_connections.access_token` to `encrypted_token`.
