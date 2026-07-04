@@ -52,13 +52,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 src/
 ├── app/            # Next.js App Router pages and layouts
 ├── components/     # UI and shared components
-├── hooks/          # Custom React hooks
-├── lib/            # Utilities, validators, Supabase client
-├── services/       # Business logic services
-├── config/         # Application configuration
-├── types/          # TypeScript type definitions
-├── styles/         # Global styles
-├── tests/          # Test files
+├── config/         # Application and navigation configuration
+├── core/           # Feature modules (planning, tasks, ideas, etc.)
+├── identity/       # Authentication and session management
+├── packages/       # Shared UI primitives, hooks, layouts, utils
+├── services/       # Supabase client, config, logger, storage
+├── lib/            # Utilities (cn helper)
+├── proxy.ts        # Edge middleware (auth, setup redirect)
 docs/               # Project documentation
 .github/            # GitHub templates and CI/CD
 ```
@@ -66,12 +66,13 @@ docs/               # Project documentation
 ## 📋 Development
 
 ```bash
-npm run dev          # Start development server
+npm run dev          # Start development server (webpack)
 npm run build        # Production build
 npm run lint         # Run ESLint
 npm run typecheck    # Run TypeScript check
+npm run test         # Run tests
 npm run format       # Format code with Prettier
-npm run ci           # Full quality gate (lint + typecheck + build)
+npm run ci           # Full quality gate (lint + typecheck + test + build)
 ```
 
 ## 🔒 Security

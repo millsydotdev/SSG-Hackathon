@@ -5,7 +5,6 @@
 | Service           | Status    | Purpose                           |
 | ----------------- | --------- | --------------------------------- |
 | **Supabase**      | Connected | Database, Auth, Storage, Realtime |
-| **Upstash Redis** | Connected | Rate limiting, caching, queues    |
 | **Vercel**        | Connected | Hosting, CDN, preview deployments |
 | **GitHub**        | Connected | Repository, CI/CD, Actions        |
 
@@ -16,12 +15,8 @@ Browser → Vercel Edge (CDN + Proxy)
            ↓
          Next.js
            ↓
-     ┌──────┴──────┐
-     │             │
-  Supabase     Upstash Redis
-(Database,    (Caching,
- Auth,         Rate Limiting,
- Storage)      Queues)
+         Supabase
+     (Database, Auth, Storage)
 ```
 
 ## Environment Variables
@@ -34,8 +29,7 @@ Validation runs at build time. Configured in Vercel per environment:
 | `NEXT_PUBLIC_SUPABASE_URL`      | Yes               | All                |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes               | All                |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Server            | Production/Preview |
-| `UPSTASH_REDIS_REST_URL`        | When Redis needed | All                |
-| `UPSTASH_REDIS_REST_TOKEN`      | When Redis needed | All                |
+| `PLATFORM_SETUP_KEY`           | Server            | Production only    |
 
 ## Health Check
 
@@ -51,8 +45,7 @@ Returns:
   "environment": "production",
   "checks": {
     "env": { "healthy": true, "missing": 0, "warnings": 0 },
-    "supabase": { "healthy": true },
-    "redis": { "healthy": true }
+    "supabase": { "healthy": true }
   }
 }
 ```

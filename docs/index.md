@@ -5,6 +5,7 @@
 - [Architecture](./architecture/)
 - [Security](./security/)
 - [Design System](./design-system/)
+- [Design](./design/)
 - [Components](./components/)
 - [Database](./database/)
 - [API](./api/)
@@ -13,6 +14,7 @@
 - [Architecture Decision Records (ADR)](./adr/)
 - [Integrations](./integrations/)
 - [Infrastructure](./infrastructure/)
+- [Releases](./releases/)
 
 ## Guides
 

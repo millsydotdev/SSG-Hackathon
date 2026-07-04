@@ -21,6 +21,7 @@ An Architecture Decision Record is a short document capturing an important archi
 | 001 | [Next.js App Router with Server Components](./001-nextjs-app-router.md) | Accepted |
 | 002 | [Supabase for Backend Services](./002-supabase-backend.md)              | Accepted |
 | 003 | [Feature-Based Project Structure](./003-feature-based-structure.md)     | Accepted |
+| 004 | [Design System Tokens](./004-design-system-tokens.md)                   | Accepted |
 
 ## Template
 

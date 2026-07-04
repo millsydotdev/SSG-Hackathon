@@ -3,68 +3,60 @@
 ```
 ssg-hackathon/
 ├── .github/                    # GitHub templates, CI/CD, issue templates
-│   ├── ISSUE_TEMPLATE/
-│   ├── workflows/
-│   ├── CODEOWNERS
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   └── dependabot.yml
 ├── docs/                       # Project documentation
-│   ├── architecture/
-│   ├── security/
-│   ├── components/
+│   ├── adr/                    # Architecture Decision Records
 │   ├── api/
+│   ├── architecture/
+│   ├── audit/
+│   ├── components/
 │   ├── database/
-│   ├── testing/
 │   ├── deployment/
+│   ├── design/
 │   ├── design-system/
-│   └── adr/
-├── public/                     # Static assets
-│   ├── images/
-│   └── fonts/
+│   ├── guides/
+│   ├── infrastructure/
+│   ├── integrations/
+│   ├── releases/
+│   ├── security/
+│   ├── standards/
+│   ├── testing/
+│   └── index.md
+├── public/                     # Static assets (logo, favicon)
 ├── scripts/                    # Build and utility scripts
 ├── src/                        # Application source
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── (marketing)/        # Public marketing routes
-│   │   ├── (dashboard)/        # Authenticated routes
+│   ├── app/                    # Next.js App Router pages and layouts
+│   │   ├── app/                # Authenticated workspace routes
 │   │   ├── api/                # API routes
+│   │   ├── setup/              # First-run setup wizard
 │   │   ├── layout.tsx          # Root layout
 │   │   └── page.tsx            # Home page
-│   ├── components/             # React components
-│   │   ├── ui/                 # Primitive UI components
-│   │   └── shared/            # Shared domain components
-│   ├── config/                 # Application configuration
-│   ├── hooks/                  # Custom React hooks
-│   ├── lib/                    # Utilities, clients, validators
-│   │   ├── supabase/           # Supabase client and helpers
-│   │   ├── utils/              # General utilities
-│   │   └── validators/         # Validation schemas
-│   ├── services/               # Business logic layer
-│   ├── styles/                 # Global styles
-│   └── types/                  # TypeScript type definitions
-├── tests/                      # Test files
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-├── .env.example                # Environment templates
-├── .env.local.example
-├── .env.preview.example
-├── .env.production.example
-├── .editorconfig
-├── .gitattributes
+│   ├── components/             # React components (admin, analytics, auth, ui, etc.)
+│   ├── config/                 # Application and navigation configuration
+│   ├── core/                   # Feature modules (domain logic)
+│   │   ├── admin/
+│   │   ├── analytics/
+│   │   ├── automation/
+│   │   ├── github/
+│   │   ├── hackathon/
+│   │   ├── planning/
+│   │   ├── tasks/
+│   │   └── ...
+│   ├── identity/               # Authentication, session, guards
+│   ├── lib/                    # Utilities (cn helper)
+│   ├── packages/               # Shared hooks, layouts, constants
+│   ├── proxy.ts                # Edge middleware
+│   └── services/               # Supabase client, config, logger
+├── supabase/
+│   └── migrations/             # Numbered SQL migrations (00001-00032)
+├── AGENTS.md
+├── .env.example
 ├── .gitignore
 ├── .prettierrc
-├── .prettierignore
 ├── commitlint.config.js
 ├── eslint.config.mjs
 ├── next.config.ts
 ├── package.json
 ├── postcss.config.mjs
 ├── tsconfig.json
-├── vercel.json
-├── CHANGELOG.md
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── README.md
-└── SECURITY.md
+└── vitest.config.ts
 ```
