@@ -10,6 +10,7 @@ import { createArchiveService, type WorkspaceArchive } from "@/core/archive";
 import { createCommentService } from "@/core/comments";
 import { createReviewService } from "@/core/reviews";
 import { createGitHubService } from "@/core/github";
+import { createIntegrationService } from "@/core/integrations";
 import { useAuth } from "@/identity";
 
 export default function MissionControlPage() {
@@ -27,6 +28,8 @@ export default function MissionControlPage() {
   const [gitHubOpenIssues, setGitHubOpenIssues] = useState(0);
   const [gitHubOpenPRs, setGitHubOpenPRs] = useState(0);
   const [gitHubConnected, setGitHubConnected] = useState(false);
+  const [integrationCount, setIntegrationCount] = useState(0);
+  const [integrationErrors, setIntegrationErrors] = useState(0);
 
   // Live countdown
   useEffect(() => {
@@ -55,7 +58,8 @@ export default function MissionControlPage() {
       user ? createReviewService().getPendingReviews(user.id) : Promise.resolve([]),
       user ? createCommentService().getUnreadMentionCount(user.id) : Promise.resolve(0),
       createGitHubService().getRepositories(activeHackathon.id),
-    ]).then(([d, a, h, as_, al, reviews, mentions, ghRepos]) => {
+      createIntegrationService().getConnections(activeHackathon.id),
+    ]).then(([d, a, h, as_, al, reviews, mentions, ghRepos, integrations]) => {
       setData(d); setActivity(a); setHealth(h);
       setArchiveStats({ totalArchived: as_.totalArchived, wins: as_.wins, totalLessons: as_.totalLessons });
       setRecentArchive(al[0] ?? null);
@@ -64,6 +68,8 @@ export default function MissionControlPage() {
       setGitHubConnected(ghRepos.length > 0);
       setGitHubOpenIssues(ghRepos.reduce((sum: number, r) => sum + (r.openIssuesCount ?? 0), 0));
       setGitHubOpenPRs(0);
+      setIntegrationCount(integrations.length);
+      setIntegrationErrors(integrations.filter((c) => c.status === "error").length);
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, [activeHackathon, user]);
 
@@ -255,8 +261,28 @@ export default function MissionControlPage() {
                   </div>
                 )}
 
-                {/* GitHub Status */}
-                {gitHubConnected && (
+                {/* Integrations */}
+                {integrationCount > 0 && (
+                  <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
+                    <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Integrations</h2>
+                    <div className="flex items-center justify-around">
+                      <div className="text-center">
+                        <p className="text-[24px] font-bold leading-none text-on-surface">{integrationCount}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">connected</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-[24px] font-bold leading-none ${integrationErrors > 0 ? "text-error" : "text-on-surface"}`}>{integrationErrors}</p>
+                        <p className="mt-xs font-mono text-[10px] text-on-surface-variant">errors</p>
+                      </div>
+                    </div>
+                    <div className="mt-md">
+                      <Link href="/app/integrations" className="font-mono text-[10px] text-primary transition-opacity hover:opacity-80">View Integrations →</Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* Legacy GitHub status */}
+                {gitHubConnected && !integrationCount && (
                   <div className="rounded border border-outline-variant/30 bg-surface-container-low p-lg">
                     <h2 className="mb-md font-mono text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">GitHub</h2>
                     <div className="flex items-center justify-around">

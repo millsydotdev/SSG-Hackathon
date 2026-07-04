@@ -22,7 +22,7 @@ export const sidebarNav: NavItem[] = [
   { label: "Submission Prep", href: "/app/submission-prep", icon: "task_alt" },
   { label: "Hackathons", href: "/app/hackathons", icon: "emoji_events" },
   { label: "Archive", href: "/app/archive", icon: "archive" },
-  { label: "GitHub", href: "/app/integrations/github", icon: "code" },
+  { label: "Integrations", href: "/app/integrations", icon: "extension" },
 ];
 
 export const secondaryNav: NavItem[] = [
