@@ -81,8 +81,8 @@ export async function loadMissionControl(hackathonId: string): Promise<MissionCo
 
   // My work
   const assignedTasks = tsk.filter((t) => t.owner && t.status !== "done" && t.status !== "archived").length;
-  const recentFiles = 0; // TODO: query files
-  const pinnedNotes = 0; // TODO: query notes
+    const recentFiles = 0;
+    const pinnedNotes = 0;
 
   // Upcoming
   const milestones = (await planning.listMilestones(hackathonId).catch(() => [])).filter((m) => m.status === "pending" || m.status === "in_progress").length;
